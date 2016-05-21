@@ -1,4 +1,4 @@
-<h3>This repo is for CodeFellows' entrace evaluation.</h3>
+<h3>This repo is for CodeFellows' entrance evaluation.</h3>
 <p>Technologies used for this project:</p>
 <ul>
   <li>Python - Flask</li>
