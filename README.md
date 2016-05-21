@@ -8,4 +8,5 @@
   <li>jQuery</li>
   <li>WebSockets - Socketio</li>
   <li>Insignia bootstrap admin theme</li>
+  <li>Nginx + gunicorn running on AWS EC2 instance</li>
 </ul>
