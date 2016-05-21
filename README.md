@@ -6,5 +6,6 @@
   <li>MySQL</li>
   <li>Bootstrap</li>
   <li>jQuery</li>
+  <li>WebSockets - Socketio</li>
   <li>Insignia bootstrap admin theme</li>
 </ul>
