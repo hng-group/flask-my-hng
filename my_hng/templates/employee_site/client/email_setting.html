@@ -1,0 +1,129 @@
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My HNG | Email setting</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename = "employee_site/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css") }}" rel="stylesheet">
+
+    <link href="{{ url_for('static', filename = "employee_site/css/animate.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = "employee_site/css/style.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = "employee_site/css/custom.css") }}" rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote-bs3.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/ladda/ladda-themeless.min.css") }}">
+
+</head>
+
+<body class="gray-bg">
+
+    <div class="passwordBox animated fadeInDown">
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="ibox-content">
+
+                    <h2 class="font-bold">Email setting</h2>
+
+                    <p>
+                        Enter your email address to unsubscribe from our email list.
+                    </p>
+
+                    <div class="row">
+
+                        <div class="col-lg-12">
+                            <form id="unsubscribe-form" class="m-t" role="form"">
+                                <div class="form-group">
+                                    <input id="client-email" type="email" class="form-control" value="{{client_email}}" placeholder="Email address" required="">
+                                </div>
+
+                                <a id="unsubscribe-button" class="btn btn-primary block full-width m-b">Unsubscribe</a>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <small>HNG Group LLC</small>
+            </div>
+            <div class="col-xs-6 text-right">
+               <small>© 2015-2016</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename = "bootstrap/js/bootstrap.min.js") }}"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/summernote/summernote.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/spin.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.jquery.min.js") }}"></script>
+
+
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            var unsubscribeForm = $('#unsubscribe-form')
+            unsubscribeForm.submit(function(){
+                return false;
+            });
+
+            var unsubscribeButton = $('#unsubscribe-button');
+            unsubscribeButton.click(function() {
+                swal({
+                    title: "Are you sure?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#18a689",
+                    confirmButtonText: "Yes",
+                    showLoaderOnConfirm: true,
+                    closeOnConfirm: false
+                }, function () {
+                    var clientEmail = $('#client-email').val();
+                    $.ajax({
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify({
+                            clientEmail: clientEmail,
+                        }),
+                        success: function (data) {
+                            if (data.status === 'found') {
+                                console.log(data);
+                                swal({
+                                    title: "Success",
+                                    text: "Your email has been removed",
+                                    type: "success",
+                                    confirmButtonColor: "#18a689"
+                                });
+                            } else if (data.status === 'not found') {
+                                swal({
+                                    title: "Error",
+                                    text: "This email is currently not subscribed",
+                                    type: "error",
+                                    confirmButtonColor: "#18a689"
+                                });
+                            }
+                            
+                        },
+                        error: function(XMLHttpRequest, textStatus, errorThrown) {
+                            swal("Error", errorThrown, "error")
+                        },
+                        dataType: "json"
+                    });
+                }); 
+            });
+
+        });
+    </script>
+
+</body>
+</html>
