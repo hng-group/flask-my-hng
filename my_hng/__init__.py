@@ -43,10 +43,7 @@ app.config['SECRET_KEY'] = 'super-secret'
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 # Mysql config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/inventory_mgmt'
-app.config['SQLALCHEMY_BINDS'] = {
-                                    'admin': 'mysql://root@localhost/admin'
-                                    }
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/my_hng'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # Flask-security config
@@ -76,24 +73,49 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 socketio = SocketIO(app)
 
+
 # Define Flask-SQLAlchemy models
+class Invoice(db.Model):
+    invoice_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
+    received_date = db.Column(db.Date(), nullable=False)
+
+
+class Part(db.Model):
+    part_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
+    description = db.Column(db.Unicode(255))
+    machine_type = db.Column(db.Unicode(100))
+    price = db.Column(db.Decimal())
+
+
+class InvoiceDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    invoice_number = db.Column(
+        db.Unicode(50), db.ForeignKey('invoice.invoice_number')
+    )
+    part_number = db.Column(
+        db.Unicode(50), db.ForeignKey('part.part_number')
+    )
+    purchase_order_number = db.Column(db.Unicode(50))
+    shelf_location = db.Column(db.Unicode(5))
+    status = db.Column(db.Unicode(20))
+    claimed = db.Column(db.Boolean, default=False)
+    claimed_date = db.Column(db.Date(), nullable=False)
+
+
 roles_users = db.Table(
     'roles_users',
     db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
     db.Column('role_id', db.Integer(), db.ForeignKey('role.id')),
-    info={'bind_key': 'admin'}
 )
 
 
 class Role(db.Model, RoleMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer(), primary_key=True, unique=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
 
 
 class User(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
@@ -132,7 +154,6 @@ class User(db.Model, UserMixin):
 
 
 class Exam(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     name = db.Column(db.String(255))
     description = db.Column(db.String(1000))
@@ -145,7 +166,6 @@ class Exam(db.Model, UserMixin):
 
 
 class Question(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     exam_id = db.Column(db.Integer, db.ForeignKey('exam.id'))
     question = db.Column(db.String(255), nullable=False)
@@ -155,7 +175,6 @@ class Question(db.Model, UserMixin):
 
 
 class Answer(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
     answer = db.Column(db.String(255), nullable=False)
@@ -165,12 +184,10 @@ user_exam_answers = db.Table(
     'user_exam_answers',
     db.Column('user_exam_id', db.Integer, db.ForeignKey('users_exams.id')),
     db.Column('answer_id', db.Integer, db.ForeignKey('answer.id')),
-    info={'bind_key': 'admin'}
 )
 
 
 class UserExam(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     __tablename__ = 'users_exams'
     id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -182,7 +199,6 @@ class UserExam(db.Model, UserMixin):
 
 
 class Client(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.String(255), primary_key=True, unique=True)
     email = db.Column(db.String(255))
     password = db.Column(db.String(255))
@@ -204,7 +220,6 @@ class Client(db.Model, UserMixin):
 
 
 class Article(db.Model, UserMixin):
-    __bind_key__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     published_date = db.Column(db.Date())
     added_date = db.Column(db.Date())
