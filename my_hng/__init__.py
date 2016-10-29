@@ -15,6 +15,7 @@ import json
 import datetime
 import gc
 import flask_excel as excel
+from random import shuffle
 import os
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -22,7 +23,6 @@ from flask import (
 )
 
 from dbconnect import connection
-from classes import *
 from MySQLdb import escape_string as thwart
 from flask_socketio import SocketIO, emit
 
@@ -36,6 +36,7 @@ from flask_security import (
 from flask_security.utils import encrypt_password
 from flask_mail import Mail, Message
 from flask_marshmallow import Marshmallow
+from utils import convert_date
 
 # App config
 app = Flask(__name__)
@@ -77,14 +78,16 @@ socketio = SocketIO(app)
 # Define Flask-SQLAlchemy models
 class Invoice(db.Model):
     invoice_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
-    received_date = db.Column(db.Date(), nullable=False)
+    received_date = db.Column(db.Date, nullable=False)
+    parts = db.relationship('InvoiceDetail', back_populates="invoice")
 
 
 class Part(db.Model):
     part_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
     description = db.Column(db.Unicode(255))
     machine_type = db.Column(db.Unicode(100))
-    price = db.Column(db.Decimal())
+    price = db.Column(db.DECIMAL)
+    invoices = db.relationship('InvoiceDetail', back_populates="part")
 
 
 class InvoiceDetail(db.Model):
@@ -97,9 +100,11 @@ class InvoiceDetail(db.Model):
     )
     purchase_order_number = db.Column(db.Unicode(50))
     shelf_location = db.Column(db.Unicode(5))
-    status = db.Column(db.Unicode(20))
+    status = db.Column(db.Unicode(20), default=u'New')
     claimed = db.Column(db.Boolean, default=False)
-    claimed_date = db.Column(db.Date(), nullable=False)
+    claimed_date = db.Column(db.Date, nullable=True)
+    part = db.relationship('Part', back_populates='invoices')
+    invoice = db.relationship('Invoice', back_populates='parts')
 
 
 roles_users = db.Table(
@@ -271,6 +276,10 @@ class ArticleSchema(ma.ModelSchema):
         model = Article
 
 
+class InvoiceSchema(ma.ModelSchema):
+    class Meta:
+        model = Invoice
+
 role_schema = RoleSchema()
 roles_schema = RoleSchema(many=True)
 user_schema = UserSchema()
@@ -287,12 +296,15 @@ client_schema = ClientSchema()
 clients_schema = ClientSchema(many=True)
 article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
+invoice_schema = InvoiceSchema()
+invoices_schema = InvoiceSchema(many=True)
 
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 db.create_all()
+
 
 @app.errorhandler(500)
 def internal_error(error):
@@ -301,18 +313,6 @@ def internal_error(error):
 
 date_format = '%m/%d/%Y'
 today_date = datetime.date.today()
-
-
-def convert_date(raw_date):
-    """Converting date received from mysql to American datetype."""
-    if raw_date is None:
-        formatted_date = raw_date
-    else:
-        formatted_date = datetime.datetime.strptime(
-            str(raw_date),
-            '%Y-%m-%d'
-        ).strftime(date_format)
-    return formatted_date
 
 
 @app.route('/')
@@ -896,11 +896,11 @@ def internal_invoices():
                 for each_line in excel_file[1:]:
                     for _ in range(int(each_line[8])):
                         part = {
-                                'part_number': each_line[7],
-                                'part_description': each_line[16],
-                                'part_price': (float(each_line[9])/float(each_line[8])),
-                                'assoc_po': each_line[18],
-                                }
+                            'part_number': each_line[7],
+                            'part_description': each_line[16],
+                            'part_price': float(each_line[9])/float(each_line[8]),
+                            'assoc_po': each_line[18],
+                        }
                         associated_parts.append(part)
                 invoice = Invoice(
                     invoice_number, date_received, associated_parts
@@ -935,8 +935,8 @@ def internal_invoices():
 @app.route('/internal/inventory/invoices/ajax')
 @login_required
 def internal_invoices_ajax():
-    all_invoices = Invoice.get_all()
-    return simplejson.dumps(all_invoices)
+    all_invoices = invoices_schema.dump(Invoice.query.all()).data
+    return json.dumps(all_invoices)
 
 
 @socketio.on('import invoice', namespace='/socketio')
@@ -957,43 +957,49 @@ def socketio_invoice_import(message):
 def internal_new_invoices():
     category = 3
     page = "New Invoice"
-    try:
-        if request.method == "POST":
-            invoice_number = request.form['invoice_number']
-            date_received = request.form['date_received']
-            part_numbers = filter(None, request.form.getlist('part_numbers[]'))
-            part_numbers = [x.upper() for x in part_numbers]
-            assoc_pos = request.form.getlist('assoc_pos[]')
-            shelf_locations = request.form.getlist('shelf_locations[]')
-            c, conn = connection()
-            execute = c.execute(
-                "SELECT * FROM invoice WHERE invoice_number = '%s'" % (thwart(invoice_number))
-            )
-            if int(execute) > 0:
-                flash("The invoice number has already existed", 'alert-danger')
-                return render_template('employee_site/inventory/new_invoice.html', page=page)
-            else:
-                c.execute("INSERT INTO invoice (invoice_number, date_received) VALUES ( '%s', STR_TO_DATE('%s', '%%m/%%d/%%Y') )" % (thwart(invoice_number), date_received) )
-                for x in range(0, len(part_numbers)):
-                    c.execute("INSERT INTO invoice_detail (invoice_number, part_number, purchase_order_number, shelf_location, status, claimed) VALUES ( '%s', '%s', '%s', '%s', 'New', 0 )" % ( thwart(invoice_number), thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(shelf_locations[x])) )
-                    check_duplicate_part = c.execute("SELECT * FROM part_detail WHERE part_number = '%s'" % (thwart(part_numbers[x])) )
-                    if int(check_duplicate_part) == 0:
-                        c.execute("INSERT INTO part_detail (part_number) VALUES ('%s')" % ( thwart(part_numbers[x])) )
-
-                conn.commit()
-                flash('Invoice created successfully', 'alert-success')
-                c.close()
-                conn.close()
-                gc.collect()
-            return redirect(url_for('internal_invoices'))
-        else:
+    if request.method == "POST":
+        invoice_number = request.form['invoice_number']
+        received_date = request.form['date_received']
+        part_numbers = filter(None, request.form.getlist('part_numbers[]'))
+        part_numbers = [x.upper() for x in part_numbers]
+        assoc_pos = request.form.getlist('assoc_pos[]')
+        shelf_locations = request.form.getlist('shelf_locations[]')
+        if Invoice.query.filter_by(
+            invoice_number=invoice_number
+        ).count() > 0:
+            flash("The invoice number has already existed", 'alert-danger')
             return render_template(
                 'employee_site/inventory/new_invoice.html',
-                category=category,
                 page=page
             )
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            received_date=received_date
+        )
+        for idx, x in enumerate(part_numbers):
+            # c.execute("INSERT INTO invoice_detail (invoice_number, part_number, purchase_order_number, shelf_location, status, claimed) VALUES ( '%s', '%s', '%s', '%s', 'New', 0 )" % ( thwart(invoice_number), thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(shelf_locations[x])) )
+            # check_duplicate_part = c.execute("SELECT * FROM part_detail WHERE part_number = '%s'" % (thwart(part_numbers[x])) )
+            # if int(check_duplicate_part) == 0:
+            #     c.execute("INSERT INTO part_detail (part_number) VALUES ('%s')" % ( thwart(part_numbers[x])) )
+            invoice_detail = InvoiceDetail(
+                purchase_order_number=assoc_pos[idx],
+                shelf_location=shelf_locations[idx],
+            )
+            part = Part.query.get(x)
+            if not part:
+                part = Part(part_number=x)
+                db.session.add(part)
+            invoice.part = part
+            invoice.parts.append(invoice_detail)
+            db.session.add(invoice)
+        db.session.commit()
+        flash('Invoice created successfully', 'alert-success')
+        return redirect(url_for('internal_invoices'))
+    return render_template(
+        'employee_site/inventory/new_invoice.html',
+        category=category,
+        page=page
+    )
 
 
 @app.route(
