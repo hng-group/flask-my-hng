@@ -1,0 +1,121 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>Client List</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/internal/">Home</a>
+            </li>
+            <li class="active">
+                <strong>Client List</strong>
+            </li>
+        </ol>
+    </div>
+<!--     <div class="col-lg-7 title-action">
+        <a href="#" class="btn btn-primary btn-sm">Pending Confirmation Numbers</a>
+    </div> -->
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>All Clients</h5>
+                    <div class="ibox-tools pull-right">
+                        <!-- <a href="#" id="import_invoice_test" class="btn btn-primary btn-sm">Test</a> -->
+                        <div class="dropdown">
+                            <a class="btn btn-primary btn-sm" id="sync_customer" role="button" data-toggle="modal" data-target="#import_invoice_form" id="import_invoice_button">Sync with Service Fusion</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <table id="client_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Contact Info</th>
+                                <th>Address</th>
+                                <th>Date Added</th>
+                                <th>Newsletter Subcribed</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Contact Info</th>
+                                <th>Address</th>
+                                <th>Date Added</th>
+                                <th>Newsletter Subcribed</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for invoice import -->
+<div class="modal inmodal" id="import_invoice_form" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content animated">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Sync Client List from Excel</h4>
+                </div>
+                <form action="" method="post" enctype=multipart/form-data>
+                    <div class="modal-body" id="process_add_role">
+                        <div id="add_role_error_msg"></div>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">File*</label>
+                                <div class="col-sm-10">
+                                    <div style="position:relative;">
+                                        <a class='btn btn-primary' href='javascript:;'>
+                                            Choose File...
+                                            <input id="client_list_file" type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="client_list_file" size="40" onchange='$("#upload-file-info").html($(this).val());'>
+                                        </a>
+                                        &nbsp;
+                                        <span class='label label-info' id="upload-file-info"></span>
+                                    </div>
+                                    <small><strong>Instruction:</strong> Download lastest client list on SF under Reports &rarr; Reports Dashboard &rarr; Customer List &rarr; Custom &rarr; Select all the colums &rarr; Choose Excel as Report Type &rarr; Generate Report</small><br>
+                                    <small><strong>NOTE:</strong> This feature is dependent on Service Fusion customer report. If they change their excel report format, the source code has to be modified to accommodate</small>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                        <button type="submit" value="submit" id="sync_client_list_file" class="btn btn-primary">Sync</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/client/client-list/client_table.js") }}"></script>
+
+{% endblock %}

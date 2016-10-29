@@ -1,0 +1,115 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>Content Management System</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/internal/">Home</a>
+            </li>
+            <li class="active">
+                <strong>CMS</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Articles</h5>
+                    <div class="ibox-tools pull-right">
+                        <!-- <a href="#" id="import_invoice_test" class="btn btn-primary btn-sm">Test</a> -->
+                        <div class="dropdown">
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('frontpage_cms_new')}}">New Article</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" href="#active-articles">Active</a></li>
+                            <li class=""><a data-toggle="tab" href="#trash">Trash</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="active-articles" class="tab-pane active">
+                                <div class="panel-body">
+                                    <table id="article_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Date Added</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Date Added</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="trash" class="tab-pane">
+                                <div class="panel-body">
+                                    <table id="trash_article" class="table table-hover table-striped" cellspacing="0" width="100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Date Added</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Category</th>
+                                                <th>Date Added</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/front-page/cms/article_table.js") }}"></script>
+
+{% endblock %}

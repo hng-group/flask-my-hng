@@ -1,0 +1,187 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+    <h2>View Invoice</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/internal/">Home</a>
+            </li>
+            <li>
+                <a href="/internal/inventory/invoices/">Invoices</a>
+            </li>
+            <li class="active">
+                <strong>{{ invoice_data[0] }}</strong>
+            </li>
+        </ol>
+    </div>
+    <div class="col-lg-2">
+
+    </div>
+</div>
+
+<p>{{ error }}</p>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Invoice Detail </h5>
+                    <div class="ibox-tools pull-right">
+                        <a href="/internal/inventory/invoices/{{ invoice_data[0] }}/delete/" class="btn btn-primary btn-sm">Delete</a>
+                    </div>
+                    <!-- <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config option 1</a>
+                            </li>
+                            <li><a href="#">Config option 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div> -->
+                </div>
+                <div class="ibox-content">
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        <div class="row"  >
+                            <div class="col-sm-6 col-md-9">
+                                <div class="form-group">
+                                    <label class="control-label" for="invoice_number">Invoice Number</label>
+                                    <input type="text" readonly="" id="invoice_number" name="post_invoice_number" value="{% print invoice_data[0] %}" placeholder="Invoice #" class="form-control" autofocus tabindex="1">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label" for="date_received">Date received</label>
+                                    <div class="input-group date">
+                                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input id="date_received" name="date_received" type="text" class="form-control" value="{{ date_received }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-md-9">
+                                <div class="checkbox checkbox-danger">
+                                    <input id="part_input" type="checkbox" >
+                                    <label for="part_input">
+                                        Enable editing
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row" >
+                            <div class="panel-body">
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-stripped table-bordered">
+
+                                        <thead>
+                                        <tr>
+                                            <th style="width: 15%">
+                                                Part Number
+                                            </th>
+                                            <th style="width: 30%">
+                                                Description
+                                            </th>
+                                            <th style="width: 20%">
+                                                Assoc. PO
+                                            </th>
+                                            <th class="text-center" style="width: 10%">
+                                                Claimed Date
+                                            </th>
+                                            <th style="width: 5%">
+                                                Location
+                                            </th>
+                                            <th style="width: 20%">
+                                                Status
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="part_list">
+                                        {% for each in invoice_detail_data %}
+                                        <tr>
+                                            <input type="hidden" name="invoice_detail_id[]" class="form-control part_input" value="{% print each[0] %}">
+                                            <td id="invoice_parts">
+                                                {% if each[6] == 1 and each[7] != None %}
+                                                <div class="input-group has-feedback">
+                                                    <input type="text" name="part_numbers[]" class="form-control part_input" placeholder="Part Number" value="{{ each[2] }}">
+                                                    <span class="input-group-addon glyphicon glyphicon-warning-sign"></span>
+                                                <div>
+                                                {% else %}
+                                                <input type="text" style="text-transform:uppercase" name="part_numbers[]" class="form-control part_input" placeholder="Part #" value="{% print each[2] %}">
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <input type="text" name="part_descriptions[]" class="form-control part_input" placeholder="Part description">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="assoc_pos[]" class="form-control part_input" placeholder="Assoc. PO" value="{% print each[3] %}">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="part_prices[]" class="form-control part_input text-center" placeholder="" value="{{ each[7] }}">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="locations[]" class="form-control part_input text-center" placeholder="" value="{% print each[4] %}">
+                                            </td>
+                                            <td>
+                                                <select name="statuses[]" class="form-control" >
+                                                    <option value="New" {% if each[5] == "New" %}selected {% endif %} >New</option>
+                                                    <option value="Dispatched" {% if each[5] == "Dispatched" %}selected {% endif %}>Dispatched</option>
+                                                    <option value="In Stock - Claimed" {% if each[5] == "In Stock - Claimed" %}selected {% endif %}>In Stock - Claimed</option>
+                                                    <option value="Used - Claimed" {% if each[5] == "Used - Claimed" %}selected {% endif %}>Used - Claimed</option>
+                                                    <option value="Returned" {% if each[5] == "Returned" %}selected {% endif %}>Returned</option>
+                                                    <option value="Remove">Remove From Invoice</option>
+
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        
+                                        <tr>
+                                            <div id="add_part_button" class="btn btn-primary">Add</div>
+                                        </tr>
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-2">
+                                    <a href="{{ url_for('internal_invoices')}}" class="btn btn-white">Cancel</a>
+                                    <button class="btn btn-primary" type="submit">Save invoice</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/datapicker/bootstrap-datepicker.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/inventory/invoice/view_invoice.js") }}"></script>
+{% endblock %}

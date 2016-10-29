@@ -1,0 +1,199 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote-bs3.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/selectize/selectize.bootstrap3.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/ladda/ladda-themeless.min.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>New Article</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li>
+                <a href="{{ url_for('frontpage_cms')}}">CMS</a>
+            </li>
+            <li class="active">
+                <strong>New Article</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>New Article</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel-body">
+                                <form id="article-form">
+                                <fieldset class="form-horizontal">
+                                    <div class="form-group"><label class="col-sm-1 control-label">Title*</label>
+                                        <div class="col-sm-11"><input id="article-title" type="text" class="form-control" placeholder="Article title"></div>
+                                    </div>
+                                    <div class="form-group"><label class="col-sm-1 control-label">Category*</label>
+                                        <div class="col-sm-11">
+                                            <select id="article-category" class="form-control">
+                                                <option value="All">All</option>
+                                                <option value="Dishwasher">Dishwasher</option>
+                                                <option value="Dryer">Dryer</option>
+                                                <option value="Laundry">Laundry</option>
+                                                <option value="Microwave">Microwave</option>
+                                                <option value="Range">Range</option>
+                                                <option value="Refrigerator">Refrigerator</option>
+                                                <option value="Washer">Washer</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label class="col-sm-1 control-label">Summary*</label>
+                                        <div class="col-sm-11"><textarea id="article-summary" type="textarea" rows="3" class="form-control" placeholder="Brief summary for the article"></textarea> </div>
+                                    </div>
+                                    <div class="form-group"><label class="col-sm-1 control-label">Content*</label>
+                                        <div class="col-sm-11">
+                                            <div id="article-content"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-4 col col-sm-offset-3">
+                                            <a href="{{url_for('frontpage_cms')}}" class="btn btn-default">Cancel</a>
+                                            <button id="publish-article" class="btn btn-primary">Publish</button>
+                                            <button role="button"  id="draft-article" class="ladda-button btn btn-info">Save as Draft</button> 
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/summernote/summernote.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/selectize/selectize.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/spin.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.jquery.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/front-page/cms/article.js") }}"></script>
+
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            $('#article-category').selectize();
+            $('#article-content').summernote({
+                placeholder: "Article content",
+                height: 500,
+                focus: true
+            });
+
+            $publishArticle.on('click', function() {
+                Article.submitArticleForm('Published', '/front-page/cms/new/');
+                return false;
+            });
+
+            $draftArticle.on('click', function() {
+                Article.submitArticleForm('Draft', '/front-page/cms/new/');
+                return false;
+            });
+
+            // publishArticle.click(function() {
+            //     swal({
+            //         title: "Are you sure?",
+            //         text: "Your article will be published onto HNG website",
+            //         type: "warning",
+            //         showCancelButton: true,
+            //         confirmButtonColor: "#18a689",
+            //         confirmButtonText: "Yes, publish this article",
+            //         showLoaderOnConfirm: true,
+            //         closeOnConfirm: false
+            //     }, function () {
+            //         $.ajax({
+            //             type: "POST",
+            //             contentType: "application/json; charset=utf-8",
+            //             url: "/front-page/cms/new/",
+            //             data: JSON.stringify({
+            //                 mode: 'publish',
+            //                 articleTitle: articleTitle,
+            //                 articleCategory: articleCategory, 
+            //                 articleSummary: articleSummary, 
+            //                 articleContent: articleContent
+            //             }),
+            //             success: function (data) {
+            //                 swal({
+            //                     title: "Success",
+            //                     text: "Article published",
+            //                     type: "success",
+            //                     confirmButtonColor: "#18a689"
+            //                 });
+            //                 console.log(data);
+            //             },
+            //             error: function(XMLHttpRequest, textStatus, errorThrown) {
+            //                 swal("Error", errorThrown, "error")
+            //             },
+            //             dataType: "json"
+            //         });
+            //     }); 
+            // });
+            
+            // var saveArticle = $('#save-article').ladda();
+            // saveArticle.click(function() {
+            //     saveArticle.ladda('start');
+            //     var articleTitle = $('#article-title').val();
+            //     var articleCategory = $('#article-category').val();
+            //     var articleSummary = $('#article-summary').val();
+            //     var articleContent = $('#article-content').summernote('code');
+            //     $.ajax({
+            //         type: "POST",
+            //         contentType: "application/json; charset=utf-8",
+            //         url: "/front-page/cms/new/",
+            //         data: JSON.stringify({
+            //             mode: 'draft',
+            //             articleTitle: articleTitle,
+            //             articleCategory: articleCategory, 
+            //             articleSummary: articleSummary, 
+            //             articleContent: articleContent
+            //         }),
+            //         success: function (data) {
+            //             swal({
+            //                 title: "Success",
+            //                 text: "Saved article",
+            //                 type: "success",
+            //                 confirmButtonColor: "#18a689"
+            //             });
+            //             saveArticle.ladda('stop');
+            //             console.log(data);
+            //         },
+            //         error: function(XMLHttpRequest, textStatus, errorThrown) {
+            //             swal("Error", errorThrown, "error")
+            //             saveArticle.ladda('stop');
+            //         },
+            //         dataType: "json"
+            //     });
+            // });
+
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/popup/popup.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>Exam</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/internal/">Home</a>
+            </li>
+            <li class="active">
+                <strong>Exam</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Exam</h5>
+                    <div class="ibox-tools pull-right">
+                        <a href="{{ url_for('internal_userbase_newuser')}}" id="new_user" class="btn btn-primary btn-sm">Create New Test</a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="panel-body">
+                        <div class="panel-group" id="accordion">
+                            <div class="panel panel-primary">
+                                <div class="panel-heading">
+                                    <h5 class="panel-title">
+                                        <a data-toggle="collapse" data-parent="#accordion" href="#available_exam">Available Test(s)</a>
+                                    </h5>
+                                </div>
+                                <div id="available_exam" class="panel-collapse collapse in">
+                                    <div class="panel-body">
+                                        <table id="available_exam_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                                            <thead>
+                                                <tr style="display:none;">
+                                                    <th>Exam</th>
+                                                    <th>Description</th>
+                                                    <th>Start</th>
+                                                    <th>End</th>
+                                                    <th>Duration</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a data-toggle="collapse" data-parent="#accordion" href="#completed_exam">Completed Test(s)</a>
+                                    </h4>
+                                </div>
+                                <div id="completed_exam" class="panel-collapse collapse">
+                                    <div class="panel-body">
+                                        <table id="completed_exam_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                                            <thead>
+                                                <tr style="display:none;">
+                                                    <th>Exam</th>
+                                                    <th>Description</th>
+                                                    <th>Start</th>
+                                                    <th>End</th>
+                                                    <th>Duration</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/popup/jquery.popup.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/knowledge/exam/available_exam.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/knowledge/exam/completed_exam.js") }}"></script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            
+            
+        //     namespace = '/test/socketio'; // change to an empty string to use the global namespace
+        //     // the socket.io documentation recommends sending an explicit package upon connection
+        //     // this is specially important when using the global namespace
+            
+        });
+    </script>
+{% endblock %}

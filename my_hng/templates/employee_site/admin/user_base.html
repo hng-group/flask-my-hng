@@ -1,0 +1,146 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/popup/popup.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>User Base</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/internal/">Home</a>
+            </li>
+            <li class="active">
+                <strong>User Base</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Users</h5>
+                    <div class="ibox-tools pull-right">
+                        <a href="{{ url_for('internal_userbase_newuser')}}" id="new_user" class="btn btn-primary btn-sm">New User</a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <table id="user_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Title</th>
+                                <th>Department</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Roles</h5>
+                    <div class="ibox-tools pull-right">
+                        <a href="#new_role" role="button" data-toggle="modal" data-target="#new_role_form" id="new_role" class="btn btn-primary btn-sm">New Role</a>
+                    </div>
+
+                </div>
+                <div class="ibox-content">
+                    <table id="role_table" class="table table-hover table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Description</th>
+                                <th class="text-center">Delete</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            
+        </div>
+    </div>
+</div>
+
+<!-- Hidden modal -->
+<div class="modal inmodal" id="new_role_form" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content animated">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Add New Role</h4>
+                </div>
+                <form>
+                    <div class="modal-body" id="process_add_role">
+                        <div id="add_role_error_msg"></div>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Role*</label>
+                                <div class="col-sm-10">
+                                    <input id="role" type="text" placeholder="Role" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Description*</label>
+                                <div class="col-sm-10">
+                                    <input id="role_description" type="text" placeholder="Role description" class="form-control">
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                        <button type="button" id="create_new_role" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/popup/jquery.popup.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/admin/user-base/users.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/admin/user-base/roles.js") }}"></script>
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            
+            
+        //     namespace = '/test/socketio'; // change to an empty string to use the global namespace
+        //     // the socket.io documentation recommends sending an explicit package upon connection
+        //     // this is specially important when using the global namespace
+            
+        });
+    </script>
+{% endblock %}

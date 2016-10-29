@@ -1,0 +1,217 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/summernote/summernote-bs3.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/ladda/ladda-themeless.min.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-5">
+        <h2>Newsletter</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li class="active">
+                <strong>Newsletter</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Newsletter</h5>
+<!--                     <div class="ibox-tools pull-right">
+                        <a href="{{ url_for('internal_userbase_newuser')}}" id="new_user" class="btn btn-primary btn-sm">Create New Test</a>
+                    </div> -->
+                </div>
+                <div class="ibox-content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel-body">
+                                <form action="/" method="post" id="newsletter-form">
+                                <fieldset class="form-horizontal">
+                                    <div class="form-group"><label class="col-sm-1 control-label">Subject:</label>
+                                        <div class="col-sm-11"><input id="newsletter-subject" name="newsletter-subject" type="text" class="form-control" placeholder="Email subject line"></div>
+                                    </div>
+                                    <div class="form-group"><label class="col-sm-1 control-label">Template:</label>
+                                        <div class="col-sm-11">
+                                            <select id="newsletter-template" class="form-control">
+                                                <option value="HNG-default">HNG default template</option>
+                                                <option value="blank">Blank</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label class="col-sm-1 control-label">Message:</label>
+                                        <div class="col-sm-11">
+                                            <div id="newsletter">
+                                                <body><table class="body-wrap" bgcolor="#f6f6f6" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 20px;"> <tbody><tr style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"> <td style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"></td><td class="container" bgcolor="#FFFFFF" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; clear: both !important; display: block !important; max-width: 600px !important; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0;"> <div class="content" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; display: block; max-width: 600px; margin: 0 auto; padding: 0;"> <table style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; width: 100%; margin: 0; padding: 0;"> <tbody><tr style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"> <td style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"> <p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;"><img src="http://hngappliances.com/static/img/HNGlogo-small.png" style="width: 100.094px; height: 51.0478px; float: right;"><br></p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;"><br></p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">Hi there,</p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">Start your message here</p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">Call for action</p><table class="btn-primary" cellpadding="0" cellspacing="0" border="0" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; width: auto !important; margin: 0 0 10px; padding: 0;"> <tbody><tr style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"> <td style="font-family: 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif; font-size: 14px; line-height: 1.6em; border-radius: 25px; text-align: center; vertical-align: top; background-color: #000080; margin: 0; padding: 0;" align="center" bgcolor="#000080" valign="top"> <a href="http://hngappliances.com" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.5; color: #ffffff; display: inline-block; cursor: pointer; font-weight: bold; text-decoration: none; background-color: #000080; margin: 0; padding: 0; border-color: #000080; border-style: solid; border-width: 10px 20px;">Action link</a> </td></tr></tbody></table> <p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">Feel free to use, copy, modify this email template as you wish.</p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">Sincerely,</p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;">HNG Appliances <br>(206) 775-7999 </p><p style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6em; font-weight: normal; margin: 0 0 10px; padding: 0;"><br></p><div style="text-align: center;"><a href="mailto:contact@hngappliances.com" style="line-height: 1.6em;">Email</a><span style="line-height: 1.6em; background-color: transparent;"> | </span><a href="http://hngappliances.com" style="line-height: 1.6em;">Website</a><span style="line-height: 1.6em; background-color: transparent;"> | </span><a href="https://goo.gl/maps/yV7dcybRzdC2" style="line-height: 1.6em;">Google Map</a><span style="line-height: 1.6em; background-color: transparent;"> | </span><a href="https://www.yelp.com/biz/hng-appliances-tukwila-2" style="line-height: 1.6em;">Yelp</a></div><p></p></td></tr></tbody></table> </div></td><td style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"></td></tr></tbody></table> <table class="footer-wrap" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; clear: both !important; width: 100%; margin: 0; padding: 0;"> <tbody><tr style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"> <td style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"><br></td><td class="container" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; clear: both !important; display: block !important; max-width: 600px !important; margin: 0 auto; padding: 0;"><div class="content" style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; display: block; max-width: 600px; margin: 0 auto; padding: 0;"><br> </div></td><td style="font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif; font-size: 100%; line-height: 1.6em; margin: 0; padding: 0;"></td></tr></tbody></table></body>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-sm-4 col col-sm-offset-4">
+                                            <a id="send-newsletter" class="ladda-button btn btn-primary" data-style="expand-right">Send bulk emails</a>
+                                            <a role="button" data-toggle="modal" data-target="#test-newsletter-form" id="test-newsletter" class="btn btn-default">Send test email</a> 
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for invoice import -->
+<div class="modal inmodal" id="test-newsletter-form" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content animated">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Enter email</h4>
+                </div>
+                <form action="" method=post enctype=multipart/form-data>
+                    <div class="modal-body" id="process_add_role">
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Email*</label>
+                                <div class="col-sm-10">
+                                    <input id="test-email" type="email" placeholder="example@myhng.net" class="form-control">
+                                </div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-white" data-dismiss="modal">Close</a>
+                        <a id="send-test" class="ladda-button btn btn-primary" data-style="expand-right">Send</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/summernote/summernote.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/spin.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.min.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/plugins/ladda/ladda.jquery.min.js") }}"></script>
+
+
+
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            $('#newsletter').summernote({
+                placeholder: "Enter your message...",
+                height: 500,
+                focus: true
+            });
+
+            $('#newsletter-template').change(function(){
+                var selected = $("#newsletter-template option:selected").val();
+                if (selected === "blank") {
+                    $('#newsletter').summernote('code', '');
+                } else if (selected === "HNG-default") {
+                    var hngDefault = $('#newsletter').html();
+                    console.log(hngDefault);
+                    $('#newsletter').summernote('code', hngDefault);
+                }
+            });
+
+            var sendNewsletter = $('#send-newsletter');
+            sendNewsletter.click(function() {
+                swal({
+                    title: "Are you sure?",
+                    text: "You will not be able to undo this action. Test function is available if you want to see how the newsletter look like.",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#18a689",
+                    confirmButtonText: "Yes, send emails",
+                    showLoaderOnConfirm: true,
+                    closeOnConfirm: false
+                }, submitForm('Something'); 
+            });
+
+            function submitForm(log) {
+                var subject = $('#newsletter-subject').val();
+                var newsletterBody = $('#newsletter').summernote('code');
+                console.log(log);
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/client/newsletter/",
+                    data: JSON.stringify({
+                        mode: 'normal',
+                        subject: subject, 
+                        newsletterBody: newsletterBody
+                    }),
+                    success: function (data) {
+                        swal({
+                            title: "Success",
+                            text: "Emails sent",
+                            type: "success",
+                            confirmButtonColor: "#18a689"
+                        });
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        swal("Error", errorThrown, "error")
+                    },
+                    dataType: "json"
+                });
+            }
+            
+            var sendTest = $('#send-test').ladda();;
+            sendTest.click(function() {
+                sendTest.ladda('start');
+                var subject = $('#newsletter-subject').val();
+                var newsletterBody = $('#newsletter').summernote('code');
+                var testEmail = $('#test-email').val();
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/client/newsletter/",
+                    data: JSON.stringify({
+                        mode: 'test',
+                        testEmail: testEmail, 
+                        subject: subject, 
+                        newsletterBody: newsletterBody
+                    }),
+                    success: function (data) {
+                        swal({
+                            title: "Success",
+                            text: "Test email sent",
+                            type: "success",
+                            confirmButtonColor: "#18a689"
+                        });
+                        sendTest.ladda('stop');
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        swal("Error", errorThrown, "error")
+                        sendTest.ladda('stop');
+                    },
+                    dataType: "json"
+                });
+            });
+
+        });
+    </script>
+{% endblock %}
