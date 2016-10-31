@@ -62,7 +62,7 @@
                     <li {% if category == 3 %} class="active" {% endif %}>
                         <a href="#"><i class="fa fa-database"></i> <span class="nav-label">Inventory Mgmt</span><span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
-                            <li {% if page == 'Invoices' or page == 'New Invoice' or page == 'View Invoice' %} class="active" {% endif %}><a href="{{ url_for ('internal_invoices')}}">Invoices</a></li>
+                            <li {% if page == 'Invoices' or page == 'New Invoice' or page == 'View Invoice' %} class="active" {% endif %}><a href="{{ url_for ('invoices')}}">Invoices</a></li>
                             <li {% if page == 'Purchase Orders' %} class="active" {% endif %}><a href="#">Purchase Orders</a></li>
                             <li {% if page == 'Stock Inventory' or page == 'Part Detail' %} class="active" {% endif %}><a href="{{ url_for ('internal_stock_inventory')}}">Stock Inventory</a></li>
                             <li {% if page == 'Daily Job Labels' %} class="active" {% endif %}><a href="#">Daily Job Labels</a></li>

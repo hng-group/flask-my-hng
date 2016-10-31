@@ -8,7 +8,7 @@ $(document).ready(function() {
     var invoice_table = $('#invoice_table').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/internal/inventory/invoices/ajax',
+            url: '/inventory/invoices/ajax',
             dataSrc: ''
         },
         "deferRender": true,
@@ -19,43 +19,45 @@ $(document).ready(function() {
                 data: "invoice_number",
                 responsivePriority: 1,
                 render: function ( data, type, row ) {
-                    return display = '<a href="/internal/inventory/invoices/' + data + '/view/">' + data + '</a>';
+                    return '<a href="/inventory/invoices/' + data + '/">' + data + '</a>';
                 }
             },
 
             {
-                data: "date_received",
+                data: "received_date",
                 responsivePriority: 2
             },
 
             {
-                data: "date_received",
+                data: "received_date",
                 responsivePriority: 5,
                 className: "text-center",
                 render: function ( data, type, row ) {
-                    return display = '<small>Pending</small>';
+                    return '<small>Pending</small>';
                 }
             },
 
             {
-                data: "number_of_items",
                 responsivePriority: 3,
-                className: "text-center"
+                className: "text-center",
+                render: function (data, type, row) {
+                  return row.parts.length;
+                },
             },
 
             {
-                data: "date_received",
+                data: "received_date",
                 responsivePriority: 4,
                 className: "text-center",
                 render: function ( data, type, row ) {
-                    return display = '<small>Pending</small>';
+                    return '<small>Pending</small>';
                 }
             }
         ],
         "pageLength": 30,
         "lengthChange": false
     });
-    
+
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });

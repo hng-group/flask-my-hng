@@ -19,7 +19,7 @@ from random import shuffle
 import os
 from flask import (
     Flask, render_template, redirect, url_for,
-    flash, jsonify, request, session
+    flash, jsonify, request,
 )
 
 from dbconnect import connection
@@ -36,10 +36,11 @@ from flask_security import (
 from flask_security.utils import encrypt_password
 from flask_mail import Mail, Message
 from flask_marshmallow import Marshmallow
-from utils import convert_date
+from utils import sql_to_us_date, us_to_sql_date
 
 # App config
 app = Flask(__name__)
+app.jinja_env.globals.update(sql_to_us_date=sql_to_us_date)
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
@@ -87,7 +88,27 @@ class Part(db.Model):
     description = db.Column(db.Unicode(255))
     machine_type = db.Column(db.Unicode(100))
     price = db.Column(db.DECIMAL)
-    invoices = db.relationship('InvoiceDetail', back_populates="part")
+    invoices = db.relationship('InvoiceDetail', back_populates='part')
+
+    @classmethod
+    def get_or_create(
+        cls, part_number, session,
+        description=None, machine_type=None, price=None,
+    ):
+        part = cls.query.get(part_number)
+        if not part:
+            part = cls(
+                part_number=part_number,
+                description=description,
+                machine_type=machine_type,
+                price=price,
+            )
+            session.add(part)
+        return part
+
+    @property
+    def available_invoices(self):
+        return [i for i in self.invoices if i.status in ('New', 'In Stock - Claimed')] 
 
 
 class InvoiceDetail(db.Model):
@@ -100,7 +121,13 @@ class InvoiceDetail(db.Model):
     )
     purchase_order_number = db.Column(db.Unicode(50))
     shelf_location = db.Column(db.Unicode(5))
-    status = db.Column(db.Unicode(20), default=u'New')
+    status = db.Column(
+        db.Enum(
+            u'New', u'Dispatched', u'In Stock - Claimed',
+            u'Used - Claimed', u'Returned',
+        ),
+        default=u'New'
+    )
     claimed = db.Column(db.Boolean, default=False)
     claimed_date = db.Column(db.Date, nullable=True)
     part = db.relationship('Part', back_populates='invoices')
@@ -280,6 +307,19 @@ class InvoiceSchema(ma.ModelSchema):
     class Meta:
         model = Invoice
 
+
+class InvoiceDetailSchema(ma.ModelSchema):
+    class Meta:
+        model = InvoiceDetail
+
+
+class PartSchema(ma.ModelSchema):
+    class Meta:
+        model = Part
+
+    invoices = ma.Nested(InvoiceDetailSchema, many=True)
+
+
 role_schema = RoleSchema()
 roles_schema = RoleSchema(many=True)
 user_schema = UserSchema()
@@ -298,6 +338,8 @@ article_schema = ArticleSchema()
 articles_schema = ArticleSchema(many=True)
 invoice_schema = InvoiceSchema()
 invoices_schema = InvoiceSchema(many=True)
+part_schema = PartSchema()
+parts_schema = PartSchema(many=True)
 
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
@@ -316,9 +358,8 @@ today_date = datetime.date.today()
 
 
 @app.route('/')
-@app.route('/internal/')
 @login_required
-def internal():
+def dashboard():
     page = "Dashboard"
     return render_template('employee_site/dashboard.html', page=page)
 
@@ -396,7 +437,7 @@ def internal_userbase_ajax_allusers():
         User.phone2,
         User.start_date
     ).all()).data
-    return json.dumps(all_users)
+    return jsonify(all_users)
 
 
 @app.route('/admin/user-base/ajax/all-roles')
@@ -879,10 +920,10 @@ def frontpage_cms_edit(article_id):
         )
 
 
-@app.route('/internal/inventory/invoices/', methods=["GET", "POST"])
+@app.route('/inventory/invoices/', methods=["GET", "POST"])
 @login_required
 @roles_accepted('admin', 'management')
-def internal_invoices():
+def invoices():
     category = 3
     page = "Invoices"
     if request.method == "POST":
@@ -932,9 +973,9 @@ def internal_invoices():
         )
 
 
-@app.route('/internal/inventory/invoices/ajax')
+@app.route('/inventory/invoices/ajax')
 @login_required
-def internal_invoices_ajax():
+def invoices_ajax():
     all_invoices = invoices_schema.dump(Invoice.query.all()).data
     return json.dumps(all_invoices)
 
@@ -951,50 +992,12 @@ def socketio_invoice_import(message):
         )
 
 
-@app.route('/internal/inventory/invoices/new/', methods=["GET", "POST"])
+@app.route('/inventory/invoices/new/')
 @login_required
 @roles_accepted('admin', 'management')
-def internal_new_invoices():
+def new_invoice():
     category = 3
     page = "New Invoice"
-    if request.method == "POST":
-        invoice_number = request.form['invoice_number']
-        received_date = request.form['date_received']
-        part_numbers = filter(None, request.form.getlist('part_numbers[]'))
-        part_numbers = [x.upper() for x in part_numbers]
-        assoc_pos = request.form.getlist('assoc_pos[]')
-        shelf_locations = request.form.getlist('shelf_locations[]')
-        if Invoice.query.filter_by(
-            invoice_number=invoice_number
-        ).count() > 0:
-            flash("The invoice number has already existed", 'alert-danger')
-            return render_template(
-                'employee_site/inventory/new_invoice.html',
-                page=page
-            )
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            received_date=received_date
-        )
-        for idx, x in enumerate(part_numbers):
-            # c.execute("INSERT INTO invoice_detail (invoice_number, part_number, purchase_order_number, shelf_location, status, claimed) VALUES ( '%s', '%s', '%s', '%s', 'New', 0 )" % ( thwart(invoice_number), thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(shelf_locations[x])) )
-            # check_duplicate_part = c.execute("SELECT * FROM part_detail WHERE part_number = '%s'" % (thwart(part_numbers[x])) )
-            # if int(check_duplicate_part) == 0:
-            #     c.execute("INSERT INTO part_detail (part_number) VALUES ('%s')" % ( thwart(part_numbers[x])) )
-            invoice_detail = InvoiceDetail(
-                purchase_order_number=assoc_pos[idx],
-                shelf_location=shelf_locations[idx],
-            )
-            part = Part.query.get(x)
-            if not part:
-                part = Part(part_number=x)
-                db.session.add(part)
-            invoice.part = part
-            invoice.parts.append(invoice_detail)
-            db.session.add(invoice)
-        db.session.commit()
-        flash('Invoice created successfully', 'alert-success')
-        return redirect(url_for('internal_invoices'))
     return render_template(
         'employee_site/inventory/new_invoice.html',
         category=category,
@@ -1002,84 +1005,103 @@ def internal_new_invoices():
     )
 
 
-@app.route(
-    '/internal/inventory/invoices/<invoice_number>/view/',
-    methods=["GET", "POST"]
-)
-@login_required
-def internal_invoices_view(invoice_number):
-    category = 3
-    page = "View Invoice"
-    # Legacy code, should be updated to OO style
-    try:
-        if request.method == "POST":
-            post_invoice_number = request.form['post_invoice_number']
-            date_received = request.form['date_received']
-            invoice_detail_id = request.form.getlist('invoice_detail_id[]')
-            part_numbers = filter(None, request.form.getlist('part_numbers[]'))
-            part_numbers = [x.upper() for x in part_numbers]
-            part_descriptions = request.form.getlist('part_descriptions[]')
-            part_prices = request.form.getlist('part_prices[]')
-            assoc_pos = request.form.getlist('assoc_pos[]')
-            locations = request.form.getlist('locations[]')
-            statuses = request.form.getlist('statuses[]')
-            c, conn = connection()
-            execute = c.execute("SELECT * FROM invoice WHERE invoice_number = '%s'" % (thwart(invoice_number)) )
-            if int(execute) == 0:
-                flash('The invoice number does not exist', 'alert-danger')
-            elif int(execute) == 1:
-                c.execute("UPDATE invoice SET date_received = STR_TO_DATE('%s', '%%m/%%d/%%Y') WHERE invoice_number = '%s'" % ( date_received, thwart(invoice_number) ) )
-                for x in range(0, len(part_numbers)):
-                    # flash(assoc_pos[x])
-                    if statuses[x] == "Remove":
-                        c.execute("DELETE FROM invoice_detail WHERE invoice_detail_id= '%s'" % ( invoice_detail_id[x] ) )
-                    elif invoice_detail_id[x] == 'add':
-                        c.execute("INSERT INTO invoice_detail (invoice_number, part_number, purchase_order_number, shelf_location, status, claimed) VALUES ( '%s', '%s', '%s', '%s', 'New', 0 )" % ( thwart(post_invoice_number), thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(locations[x])) )
-                        check_duplicate_part = c.execute("SELECT * FROM part_detail WHERE part_number = '%s'" % (thwart(part_numbers[x])) )
-                        if int(check_duplicate_part) == 0:
-                            c.execute("INSERT INTO part_detail (part_number) VALUES  ('%s')" % ( thwart(part_numbers[x])) )
-                    elif statuses[x] == 'In Stock - Claimed' or statuses[x] == 'Used - Claimed':
-                        c.execute("UPDATE invoice_detail SET part_number = '%s', purchase_order_number = '%s', shelf_location = '%s', status = '%s', claimed = 1, claimed_date = '%s' WHERE invoice_detail_id = '%s'" % ( thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(locations[x]), thwart(statuses[x]), today_date, invoice_detail_id[x] ) )
-                    else:
-                        c.execute("UPDATE invoice_detail SET part_number = '%s', purchase_order_number = '%s', shelf_location = '%s', status = '%s' WHERE invoice_detail_id = '%s'" % ( thwart(part_numbers[x]), thwart(assoc_pos[x]), thwart(locations[x]), thwart(statuses[x]), invoice_detail_id[x] ) )
-                        check_duplicate_part = c.execute("SELECT * FROM part_detail WHERE part_number = '%s'" % (thwart(part_numbers[x])) )
-                        if int(check_duplicate_part) == 0:
-                            c.execute("INSERT INTO part_detail (part_number) VALUES ('%s')" % ( thwart(part_numbers[x])) )
-                conn.commit()
-                socketio.emit('my response',
-                      {'data': 'Server generated event'},
-                      namespace='/test/socketio')
-                flash("Change(s) saved", 'alert-success')
-                c.close()
-                conn.close()
-                gc.collect()
-            return redirect(url_for('internal_invoices'))
-        else:
-            c, conn = connection()
-            c.execute("SELECT * FROM invoice WHERE invoice_number = '%s'" % (thwart(invoice_number)) )
-            invoice_data = c.fetchone()
-            c.execute("SELECT * FROM invoice_detail WHERE invoice_number = '%s'" % (thwart(invoice_number)) )
-            invoice_detail_data = c.fetchall()
-            c.close()
-            conn.close()
-            gc.collect()
-            date_received = convert_date(invoice_data[1])
-            return render_template(
-                'employee_site/inventory/view_invoice.html',
-                category=category,
-                page=page,
-                invoice_data=invoice_data,
-                invoice_detail_data=invoice_detail_data,
-                date_received=date_received
-            )
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
-
-
-@app.route('/internal/inventory/stock-inventory/', methods=["GET", "POST"])
+@app.route('/inventory/invoices/new/', methods=['POST'])
 @login_required
 @roles_accepted('admin', 'management')
-def internal_stock_inventory():
+def new_invoice_post():
+    invoice_number = request.form['invoice_number']
+    received_date = us_to_sql_date(request.form['date_received']),
+    part_numbers = filter(None, request.form.getlist('part_numbers[]'))
+    part_numbers = [x.upper() for x in part_numbers]
+    assoc_pos = request.form.getlist('assoc_pos[]')
+    shelf_locations = request.form.getlist('shelf_locations[]')
+    if Invoice.query.get(invoice_number):
+        flash("The invoice number has already existed", 'alert-danger')
+        return redirect(url_for('new_invoice'))
+    invoice = Invoice(
+        invoice_number=invoice_number,
+        received_date=received_date
+    )
+    for idx, x in enumerate(part_numbers):
+        invoice_detail = InvoiceDetail(
+            purchase_order_number=assoc_pos[idx],
+            shelf_location=shelf_locations[idx],
+        )
+        part = Part.get_or_create(x, db.session)
+        invoice_detail.part = part
+        invoice.parts.append(invoice_detail)
+        db.session.add(invoice)
+    db.session.commit()
+    flash('Invoice created successfully', 'alert-success')
+    return redirect(url_for('invoices'))
+
+
+@app.route('/inventory/invoices/<invoice_number>/',)
+@login_required
+def view_invoice(invoice_number):
+    category = 3
+    page = "View Invoice"
+    invoice = Invoice.query.get_or_404(invoice_number)
+    return render_template(
+        'employee_site/inventory/view_invoice.html',
+        category=category,
+        page=page,
+        invoice=invoice,
+    )
+
+
+@app.route('/inventory/invoices/<invoice_number>/', methods=['POST'])
+@login_required
+def update_invoice(invoice_number):
+    invoice = Invoice.query.get(invoice_number)
+    if not invoice:
+        flash('The invoice number does not exist', 'alert-danger')
+        return redirect(url_for('invoices'))
+    received_date = us_to_sql_date(request.form['date_received'])
+    invoice_detail_id = request.form.getlist('invoice_detail_id[]')
+    part_numbers = filter(None, request.form.getlist('part_numbers[]'))
+    part_numbers = [x.upper() for x in part_numbers]
+    assoc_pos = request.form.getlist('assoc_pos[]')
+    shelf_locations = request.form.getlist('locations[]')
+    statuses = request.form.getlist('statuses[]')
+    invoice.received_date = received_date
+    for idx, x in enumerate(part_numbers):
+        invoice_detail = InvoiceDetail.query.get(invoice_detail_id[idx])
+        part = Part.get_or_create(x, db.session)
+        if not invoice_detail:
+            invoice_detail = InvoiceDetail(
+                purchase_order_number=assoc_pos[idx],
+                shelf_location=shelf_locations[idx],
+            )
+            invoice_detail.part = part
+            invoice_detail.purchase_order_number = assoc_pos[idx]
+            invoice_detail.status = statuses[idx]
+            invoice_detail.shelf_location = shelf_locations[idx]
+            invoice.parts.append(invoice_detail)
+        else:
+            if statuses[idx] == 'Remove':
+                db.session.delete(invoice_detail)
+            else:
+                if (statuses[idx] in ('In Stock - Claimed', 'Used - Claimed')
+                        and statuses[idx] != invoice_detail.status):
+                    invoice_detail.claimed = True
+                    invoice_detail.claimed_date = datetime.date.today()
+                elif statuses[idx] == 'New':
+                    invoice_detail.claimed = False
+                    invoice_detail.claimed_date = None
+                invoice_detail.part = part
+                invoice_detail.purchase_order_number = assoc_pos[idx]
+                invoice_detail.status = statuses[idx]
+                invoice_detail.shelf_location = shelf_locations[idx]
+    db.session.commit()
+    flash('Change(s) saved', 'alert-success')
+    return redirect(url_for('invoices'))
+
+
+@app.route('/inventory/stock-inventory/', methods=["GET", "POST"])
+@login_required
+@roles_accepted('admin', 'management')
+def get_stock():
     category = 3
     page = "Stock Inventory"
     return render_template(
@@ -1089,11 +1111,13 @@ def internal_stock_inventory():
     )
 
 
-@app.route('/internal/inventory/stock-inventory/ajax')
+@app.route('/inventory/stock-inventory/ajax')
 @login_required
 def internal_stock_inventory_ajax():
-    stock_parts = Part.get_stock_inventory()
-    return simplejson.dumps(stock_parts)
+    stock_parts = parts_schema.dump(
+        Part.query.all()
+    ).data
+    return jsonify(stock_parts)
 
 
 @app.route(
@@ -1114,30 +1138,19 @@ def stock_inventory_settings():
     )
 
 
-@app.route(
-    '/internal/inventory/stock-inventory/<path:part_number>/view/',
-    methods=["GET", "POST"]
-)
+@app.route('/inventory/stock-inventory/<path:part_number>/')
 @login_required
 @roles_accepted('admin', 'management')
 def internal_part_detail(part_number):
     category = 3
     page = "Part Detail"
-    try:
-        if request.method == "POST":
-            pass
-        else:
-            part_detail_data = Part.get_by_part_number(part_number)
-            stock_quantity = Part.get_stock_quantity_for_part(part_number)
-            return render_template(
-                'employee_site/inventory/part_detail.html',
-                category=category,
-                page=page,
-                stock_quantity=stock_quantity,
-                part_detail_data=part_detail_data
-            )
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
+    part = Part.query.get_or_404(part_number)
+    return render_template(
+        'employee_site/inventory/part_detail.html',
+        category=category,
+        page=page,
+        part=part
+    )
 
 
 @app.route(

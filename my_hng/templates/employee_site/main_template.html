@@ -11,16 +11,16 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet">
 
-    <link href="{{ url_for('static', filename = "employee_site/css/plugins/footable/footable.core.css") }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename = "employee_site/css/plugins/datapicker/datepicker3.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/plugins/footable/footable.core.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/plugins/datapicker/datepicker3.css") }}" rel="stylesheet">
 
-    <link href="{{ url_for('static', filename = "employee_site/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css") }}" rel="stylesheet">
 
     {% block css %}{% endblock %}
 
-    <link href="{{ url_for('static', filename = "employee_site/css/animate.css") }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename = "employee_site/css/style.css") }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename = "employee_site/css/custom.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/animate.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/style.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="employee_site/css/custom.css") }}" rel="stylesheet">
 
 </head>
 
@@ -50,7 +50,7 @@
                     </li>
 
                     <li {% if request.path == '/internal/' %} class="active" {% endif %}>
-                        <a href="{{ url_for('internal')}}"><i class="fa fa-th-large"></i> <span class="nav-label">Dashboard</span></a>
+                        <a href="{{ url_for('dashboard')}}"><i class="fa fa-th-large"></i> <span class="nav-label">Dashboard</span></a>
                     </li>
 
                     <li {% if page == 'User Base' or page == 'Settings'  %} class="active" {% endif %}>
@@ -88,7 +88,7 @@
                         <a href="{{ url_for('internal_flow_chart')}}"><i class="fa fa-terminal"></i> <span class="nav-label">App Development</span></a>
                     </li>
 
-                    
+
                     <li {% if page == 'CMS'  %} class="active" {% endif %}>
                         <a href="#"><i class="fa fa-sitemap"></i> <span class="nav-label">HNG Front Page</span><span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
@@ -98,11 +98,11 @@
                     </li>
 
                     <li {% if category == 3 %} class="active" {% endif %}>
-                        <a href="{{url_for('internal')}}"><i class="fa fa-database"></i> <span class="nav-label">Inventory Mgmt</span><span class="fa arrow"></span></a>
+                        <a href="{{url_for('dashboard')}}"><i class="fa fa-database"></i> <span class="nav-label">Inventory Mgmt</span><span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
                             <li {% if page == 'Daily Parts' %} class="active" {% endif %}><a href="#">Daily Parts</a></li>
-                            <li {% if page == 'Invoices' or page == 'New Invoice' or page == 'View Invoice' %} class="active" {% endif %}><a href="{{ url_for ('internal_invoices') }}">Invoices</a></li>
-                            <li {% if page == 'Stock Inventory' or page == 'Part Detail' %} class="active" {% endif %}><a href="{{ url_for ('internal_stock_inventory')}}">Stock Inventory</a></li>
+                            <li {% if page == 'Invoices' or page == 'New Invoice' or page == 'View Invoice' %} class="active" {% endif %}><a href="{{ url_for ('invoices') }}">Invoices</a></li>
+                            <li {% if page == 'Stock Inventory' or page == 'Part Detail' %} class="active" {% endif %}><a href="{{ url_for ('get_stock')}}">Stock Inventory</a></li>
                             <li {% if page == 'Inventory Report' or page == 'Shelf Report' %} class="active" {% endif %}>
                                 <a href="#">Report<span class="fa arrow"></span></a>
                                 <ul class="nav metismenu nav-third-level ">
@@ -124,7 +124,7 @@
                 </ul>
             </div>
         </nav>
-        
+
         <div id="page-wrapper" class="gray-bg">
             <div class="row border-bottom">
                 <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
@@ -249,7 +249,7 @@
             {% with messages = get_flashed_messages(with_categories = true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div id="main_alert" class="alert {% if category == 'error' %} alert-danger {% else %} {{ category }} {% endif %} alert-dismissable" role="alert"> 
+                        <div id="main_alert" class="alert {% if category == 'error' %} alert-danger {% else %} {{ category }} {% endif %} alert-dismissable" role="alert">
                             <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
                             {{ message }}
                         </div>
@@ -299,13 +299,13 @@
 
 
     {% block javascript %}{% endblock %}
-    
+
     <script>
         $(document).ready(function(){
 
             window.setTimeout(function() {
                 $("#main_alert").fadeTo(500, 0).slideUp(500, function(){
-                    $(this).remove(); 
+                    $(this).remove();
                 });
             }, 8000);
 
@@ -331,7 +331,7 @@
             });
 
         });
-        
+
 
         jQuery(function($){
         $('.nav-tabs a').click(function (e) {

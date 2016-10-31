@@ -6,20 +6,20 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
 {% endblock %}
-    
+
 {% block body %}
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-9 col-md-7">
         <h2>Part Detail</h2>
         <ol class="breadcrumb">
             <li>
-                <a href="/internal/">Home</a>
+                <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li>
-                <a href="/internal/inventory/stock-inventory/">Stock Inventory</a>
+                <a href="{{ url_for('get_stock') }}">Stock Inventory</a>
             </li>
             <li class="active">
-                <strong>Part Detail</strong>
+                <strong>{{ part.part_number }}</strong>
             </li>
         </ol>
     </div>
@@ -39,7 +39,7 @@
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <a href="/internal/inventory/stock-inventory/{{ part_detail_data[0] }}/edit/">
+                        <a href="/internal/inventory/stock-inventory/{{ part.part_number }}/edit/">
                             <i class="fa fa-wrench"></i>
                         </a>
                         <!-- <ul class="dropdown-menu dropdown-user">
@@ -65,7 +65,7 @@
                                         IMAGE NOT AVAILABLE
                                     </div>
                                 </div>
-                                
+
 
                             </div>
 
@@ -73,24 +73,24 @@
                         <div class="col-md-7">
 
                             <h2 class="font-bold m-b-xs">
-                                {{ part_detail_data[0] }}
+                                {{ part.part_number }}
                             </h2>
-                            <small>Machine Type: {{ part_detail_data[2] }} </small>
+                            <small>Machine Type: {{ part.machine_type }} </small>
                             <div class="m-t-md">
-                                <h2 class="product-main-price">${{ part_detail_data[3] }}</h2>
+                                <h2 class="product-main-price">${{ part.price }}</h2>
                             </div>
 
                             <h4>Part description</h4>
 
                             <div class="small text-muted">
-                                {{ part_detail_data[1] }}
+                                {{ part.description }}
                             </div>
                             <div class="m-t-md">
-                                <h3>Stock Quantity: {{ stock_quantity }}</h3>
+                                <h3>Stock Quantity: {{ part.available_invoices | length}}</h3>
                             </div>
-                            
+
                             <hr>
-                            
+
                             <div>
                                 <div class="btn-group">
                                     <button class="btn btn-primary btn-sm"><i class="fa fa-cart-plus"></i> Add to cart</button>
@@ -136,7 +136,7 @@
 
 {% block javascript %}
     <script>
-    var part_number = '{{ part_detail_data[0] }}';
+    var part_number = '{{ part.part_number }}';
     </script>
 
     <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
@@ -149,7 +149,7 @@
     <script>
     $(document).ready(function() {
         var options = {
-            url: "/internal/inventory/stock-inventory/ajax",
+            url: "/inventory/stock-inventory/ajax",
 
             getValue: "part_number",
             requestDelay: 300,
@@ -180,5 +180,3 @@
 
     </script>
 {% endblock %}
-
-

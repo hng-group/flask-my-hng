@@ -4,13 +4,19 @@ from datetime import datetime
 DATE_FORMAT = '%m/%d/%Y'
 
 
-def convert_date(raw_date):
-    """Converting date received from mysql to American datetype."""
-    if raw_date is None:
-        formatted_date = raw_date
-    else:
-        formatted_date = datetime.strptime(
-            str(raw_date),
+def sql_to_us_date(original):
+    """Converts SQL date to U.S date."""
+    if original is None:
+        return
+    return datetime.strptime(
+            str(original),
             '%Y-%m-%d'
         ).strftime(DATE_FORMAT)
-    return formatted_date
+
+
+def us_to_sql_date(original):
+    """Converts U.S date to SQL date."""
+    return datetime.strptime(
+        str(original),
+        '%m/%d/%Y'
+    ).strftime('%Y-%m-%d')
