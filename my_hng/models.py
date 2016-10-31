@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import RoleMixin, UserMixin
 
@@ -36,7 +37,11 @@ class Part(db.Model):
 
     @property
     def available_invoices(self):
-        return [i for i in self.invoices if i.status in ('New', 'In Stock - Claimed')]
+        return [
+            i for i in self.invoices if i.status in (
+                'New', 'In Stock - Claimed'
+            )
+        ]
 
 
 class InvoiceDetail(db.Model):

@@ -39,15 +39,7 @@
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <a href="/internal/inventory/stock-inventory/{{ part.part_number }}/edit/">
-                            <i class="fa fa-wrench"></i>
-                        </a>
-                        <!-- <ul class="dropdown-menu dropdown-user">
-                            <li><a href="#">Config option 1</a>
-                            </li>
-                            <li><a href="#">Config option 2</a>
-                            </li>
-                        </ul> -->
+                        <a href="#" data-toggle="modal" data-target="#import_invoice_form" id="import_invoice_button"><i class="fa fa-wrench"></i></a>
                         <a class="close-link">
                             <i class="fa fa-times"></i>
                         </a>
@@ -131,6 +123,44 @@
     </div>
 </div>
 
+
+<div class="modal inmodal" id="import_invoice_form" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content animated">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Import Invoice</h4>
+                </div>
+                <form action="" method=post enctype=multipart/form-data>
+                    <div class="modal-body" id="process_add_role">
+                        <div id="add_role_error_msg"></div>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">File*</label>
+                                <div class="col-sm-10">
+                                    <div style="position:relative;">
+                                        <a class='btn btn-primary' href='javascript:;'>
+                                            Choose File...
+                                            <input id="invoice_file" type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="invoice_file" size="40" onchange='$("#upload-file-info").html($(this).val());'>
+                                        </a>
+                                        &nbsp;
+                                        <span class='label label-info' id="upload-file-info"></span>
+                                    </div>
+                                    <small><strong>Instruction:</strong> Lookup invoice number on GSPN under 'Shipping Information' &rarr; Download Excel file &rarr; Open file in Excel &rarr; Save as.. &rarr; Choose lattest Excel format.</small>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                        <button type="submit" value="submit" id="import_invoice" class="btn btn-primary">Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 

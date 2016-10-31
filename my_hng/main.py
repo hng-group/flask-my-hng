@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Hello fellow developer, this project is coded using Flask framework, for more
@@ -28,12 +29,8 @@ from models import (
 from dbconnect import connection
 from MySQLdb import escape_string as thwart
 from flask_socketio import SocketIO, emit
-
-# SQLAlchemy imports, ORM was used since 01/24/2016, so there might be raw SQL
-# in code written prior that date
-from flask_sqlalchemy import SQLAlchemy
 from flask_security import (
-    Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin,
+    Security, SQLAlchemyUserDatastore,
     login_required, roles_required, roles_accepted, current_user
 )
 from flask_security.utils import encrypt_password
@@ -77,9 +74,6 @@ mail = Mail(app)
 db.init_app(app)
 ma = Marshmallow(app)
 socketio = SocketIO(app)
-
-
-# Define Flask-SQLAlchemy models
 
 
 class RoleSchema(ma.ModelSchema):
@@ -163,7 +157,6 @@ parts_schema = PartSchema(many=True)
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
-
 
 
 @app.errorhandler(500)
