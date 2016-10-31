@@ -2,28 +2,28 @@ $(document).ready(function() {
     var part_invoice_table = $('#part_invoice_table').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/internal/inventory/stock-inventory/' + part_number + '/view/ajax/stock-status',
-            dataSrc: ''
+            url: '/inventory/stock-inventory/' + part_number + '/ajax',
+            dataSrc: 'invoices'
         },
         "deferRender": true,
         "stateSave": true,
         "order": [[ 0, 'desc' ]],
         "columns": [
             {
-                data: "invoice_number",
+                data: "invoice",
                 responsivePriority: 1,
                 render: function ( data, type, row ) {
-                    return display = '<a href="/internal/inventory/invoices/' + data + '/view/">' + data + '</a>';
+                    return '<a href="/inventory/invoices/' + data + '/">' + data + '</a>';
                 }
             },
 
             {
-                data: "assoc_po",
+                data: "purchase_order_number",
                 responsivePriority: 2
             },
 
             {
-                data: "location",
+                data: "shelf_location",
                 responsivePriority: 3
             },
 
@@ -47,7 +47,7 @@ $(document).ready(function() {
         "pageLength": 15,
         "lengthChange": false
     });
-    
+
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });
@@ -55,5 +55,5 @@ $(document).ready(function() {
     socket.on('my response', function() {
         invoice_table.ajax.reload( null, false );
     });
-    
+
 });

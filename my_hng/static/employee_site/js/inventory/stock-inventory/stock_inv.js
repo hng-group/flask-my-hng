@@ -13,7 +13,7 @@ $(document).ready(function() {
                 data: "part_number",
                 responsivePriority: 1,
                 render: function ( data, type, row ) {
-                    return display = '<a href="/inventory/stock-inventory/' + data + '/">' + data + '</a>';
+                    return '<a href="/inventory/stock-inventory/' + data + '/">' + data + '</a>';
                 }
             },
 
