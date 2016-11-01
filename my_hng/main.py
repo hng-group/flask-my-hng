@@ -982,7 +982,7 @@ def update_part(part_number):
     return redirect(url_for('view_part', part_number=part_number))
 
 
-@app.route('/inventory/stock-inventory/<path:part_number>/ajax')
+@app.route('/inventory/parts/<path:part_number>/ajax')
 @login_required
 def view_part_ajax(part_number):
     part = Part.query.get_or_404(part_number)
