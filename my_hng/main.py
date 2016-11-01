@@ -255,7 +255,7 @@ def internal_userbase_ajax_allusers():
 @login_required
 def internal_userbase_ajax_allroles():
     all_roles = roles_schema.dump(Role.query.all()).data
-    return json.dumps(all_roles)
+    return jsonify(all_roles)
 
 
 @app.route('/admin/user-base/new-user/', methods=["GET", "POST"])
@@ -969,11 +969,16 @@ def view_part(part_number):
 @roles_accepted('admin', 'management')
 def update_part(part_number):
     part = Part.query.get_or_404(part_number)
-    part.description = request.form['part_description']
-    part.machine_type = request.form['machine_type']
-    part.price = request.form['part_price']
-    part.image_url = request.form['image_url']
-    flash('')
+    try:
+        part.description = request.form['part_description']
+        part.machine_type = request.form['machine_type']
+        part.price = float(request.form['part_price'])
+        part.image_url = request.form['image_url']
+        db.session.commit()
+    except:
+        flash('Update failed, try again', 'alert-danger')
+        return redirect(url_for('view_part', part_number=part_number))
+    flash('Part detail updated', 'alert-success')
     return redirect(url_for('view_part', part_number=part_number))
 
 
