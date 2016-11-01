@@ -3,7 +3,7 @@ $(document).ready(function() {
     var stock_inv = $('#stock_inv').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/inventory/stock-inventory/ajax',
+            url: '/inventory/parts/ajax',
             dataSrc: ''
         },
         "deferRender": true,
@@ -13,7 +13,7 @@ $(document).ready(function() {
                 data: "part_number",
                 responsivePriority: 1,
                 render: function ( data, type, row ) {
-                    return '<a href="/inventory/stock-inventory/' + data + '/">' + data + '</a>';
+                    return '<a href="/inventory/parts/' + data + '/">' + data + '</a>';
                 }
             },
 

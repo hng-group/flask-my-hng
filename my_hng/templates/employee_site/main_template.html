@@ -49,7 +49,7 @@
                         </div>
                     </li>
 
-                    <li {% if request.path == '/internal/' %} class="active" {% endif %}>
+                    <li {% if request.path == '/' %} class="active" {% endif %}>
                         <a href="{{ url_for('dashboard')}}"><i class="fa fa-th-large"></i> <span class="nav-label">Dashboard</span></a>
                     </li>
 
@@ -98,16 +98,15 @@
                     </li>
 
                     <li {% if category == 3 %} class="active" {% endif %}>
-                        <a href="{{url_for('dashboard')}}"><i class="fa fa-database"></i> <span class="nav-label">Inventory Mgmt</span><span class="fa arrow"></span></a>
+                        <a href=""><i class="fa fa-database"></i> <span class="nav-label">Inventory</span><span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
-                            <li {% if page == 'Daily Parts' %} class="active" {% endif %}><a href="#">Daily Parts</a></li>
                             <li {% if page == 'Invoices' or page == 'New Invoice' or page == 'View Invoice' %} class="active" {% endif %}><a href="{{ url_for ('invoices') }}">Invoices</a></li>
-                            <li {% if page == 'Stock Inventory' or page == 'Part Detail' %} class="active" {% endif %}><a href="{{ url_for ('get_stock')}}">Stock Inventory</a></li>
+                            <li {% if page == 'Stock Inventory' or page == 'Part Detail' %} class="active" {% endif %}><a href="{{ url_for ('get_stock')}}">Parts</a></li>
                             <li {% if page == 'Inventory Report' or page == 'Shelf Report' %} class="active" {% endif %}>
                                 <a href="#">Report<span class="fa arrow"></span></a>
                                 <ul class="nav metismenu nav-third-level ">
                                     <li>
-                                        <a {% if page == 'Inventory Report' %} style="color:#fff;" {% endif %} href="{{ url_for ('internal_inventory_report')}}">Stock Report</a>
+                                        <a {% if page == 'Inventory Report' %} style="color:#fff;" {% endif %} href="{{ url_for ('inventory_report')}}">Stock Report</a>
                                     </li>
                                     <li>
                                         <a {% if page == 'Shelf Report' %} style="color:#fff;" {% endif %} href="{{ url_for ('inventory_shelf_report')}}">Shelf Report</a>

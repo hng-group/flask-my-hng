@@ -1,9 +1,9 @@
 $(document).ready(function() {
-    
+
     var most_freq_bought = $('#most_freq_bought').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/internal/inventory/report/ajax/top-50-part',
+            url: '/inventory/report/ajax/top-50-part',
             dataSrc: ''
         },
         "deferRender": true,
@@ -12,56 +12,63 @@ $(document).ready(function() {
         "ordering": false,
         "columns": [
             {
-                data: 0,
+                data: 'part_number',
                 responsivePriority: 1,
                 render: function ( data, type, row ) {
-                    return display = '<a href="/internal/inventory/stock-inventory/' + data + '/view/">' + data + '</a>';
+                    return display = '<a href="/inventory/parts/' + data + '/">' + data + '</a>';
                 }
             },
 
             {
-                data: 1,
+                data: 'description',
                 responsivePriority: 3
             },
 
             {
-                data: 2,
+                data: 'machine_type',
                 responsivePriority: 7,
                 className: "text-center"
             },
 
 
             {
-                data: 8,
+                data: 'invoices',
                 responsivePriority: 5,
-                className: "amount-bought"
+                className: "amount-bought",
+                render: function(data, type, row) {
+                  return data.length;
+                }
             },
             {
-                data: 6,
+                data: 'invoices',
                 responsivePriority: 2,
                 className: "stock-status",
-                render: function ( data, type, row ) {
-                    if (data >= 3) {
-                        var display = '<span class="label label-primary btn-rounded">In stock</span>';
-                        return display;
-                    } else if (data >= 1 && data < 3) {
-                        var display = '<span class="label label-warning btn-rounded">Low stock</span>';
-                        return display;
-                    } else {
-                        var display = '<span class="label label-danger btn-rounded">Out of stock</span>';
-                        return display;
-                    }
-                    
+                render: function (invoices, type, row) {
+                  var stock_invoices = invoices.filter(function(invoice) {
+                      return [
+                        'New',
+                        'In Stock - Claimed'
+                      ].indexOf(invoice.status) >= 0;
+                  });
+                  var display;
+                  if (stock_invoices.length >= 3) {
+                    display = '<span class="label label-primary btn-rounded">In stock</span>';
+                  } else if (stock_invoices.length >= 1 && stock_invoices.length < 3) {
+                    display = '<span class="label label-warning btn-rounded">Low stock</span>';
+                  } else {
+                    display = '<span class="label label-danger btn-rounded">Out of stock</span>';
+                  }
+                  return display;
                 }
             }
         ],
         "pageLength": 15,
         "lengthChange": false
     });
-    
+
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });
 
-    
+
 });

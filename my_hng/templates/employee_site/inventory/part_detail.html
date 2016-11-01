@@ -16,7 +16,7 @@
                 <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li>
-                <a href="{{ url_for('get_stock') }}">Stock Inventory</a>
+                <a href="{{ url_for('get_stock') }}">Parts</a>
             </li>
             <li class="active">
                 <strong>{{ part.part_number }}</strong>
@@ -185,13 +185,12 @@
     <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/stock-inventory/part_detail.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/inventory/part/part_detail.js") }}"></script>
     <script src="{{ url_for('static', filename = "employee_site/js/plugins/easyautocomplete/jquery.easy-autocomplete.min.js") }}"></script>
     <script>
     $(document).ready(function() {
         var options = {
             url: "/inventory/stock-inventory/ajax",
-
             getValue: "part_number",
             requestDelay: 300,
             template: {

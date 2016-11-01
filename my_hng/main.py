@@ -909,20 +909,20 @@ def update_invoice(invoice_number):
     return redirect(url_for('invoices'))
 
 
-@app.route('/inventory/stock-inventory/')
+@app.route('/inventory/parts/')
 @login_required
 @roles_accepted('admin', 'management')
 def get_stock():
     category = 3
     page = "Stock Inventory"
     return render_template(
-        'employee_site/inventory/stock_inventory.html',
+        'employee_site/inventory/parts.html',
         category=category,
         page=page
     )
 
 
-@app.route('/inventory/stock-inventory/ajax')
+@app.route('/inventory/parts/ajax')
 @login_required
 def internal_stock_inventory_ajax():
     stock_parts = parts_schema.dump(
@@ -949,7 +949,7 @@ def stock_inventory_settings():
     )
 
 
-@app.route('/inventory/stock-inventory/<path:part_number>/')
+@app.route('/inventory/parts/<path:part_number>/')
 @login_required
 @roles_accepted('admin', 'management')
 def view_part(part_number):
@@ -964,7 +964,7 @@ def view_part(part_number):
     )
 
 
-@app.route('/inventory/stock-inventory/<path:part_number>/', methods=['POST'])
+@app.route('/inventory/parts/<path:part_number>/', methods=['POST'])
 @login_required
 @roles_accepted('admin', 'management')
 def update_part(part_number):
@@ -989,71 +989,28 @@ def view_part_ajax(part_number):
     return jsonify(part_schema.dump(part).data)
 
 
-@app.route(
-    '/internal/inventory/stock-inventory/<path:part_number>/edit/',
-    methods=["GET", "POST"]
-)
+@app.route('/inventory/report/')
 @login_required
 @roles_accepted('admin', 'management')
-def internal_part_edit(part_number):
-    category = 3
-    page = "Part Edit"
-    try:
-        if request.method == "POST":
-            part_description = request.form['part_description']
-            machine_type = request.form['machine_type']
-            part_price = request.form['part_price']
-            image_url = request.form['image_url']
-            part = Part(
-                part_number, part_description,
-                machine_type, part_price, image_url
-            )
-            if part.update() is True:
-                flash("Updated part detail successfully", 'alert-success')
-            return redirect(url_for('internal_stock_inventory'))
-        else:
-            part_detail_data = Part.get_by_part_number(part_number)
-            return render_template(
-                'employee_site/inventory/part_edit.html',
-                category=category,
-                page=page,
-                part_number=part_number,
-                part_detail_data=part_detail_data
-            )
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
-
-
-@app.route('/internal/inventory/report/')
-@login_required
-@roles_accepted('admin', 'management')
-def internal_inventory_report():
+def inventory_report():
     category = 3
     page = "Inventory Report"
-    try:
-        return render_template(
-            'employee_site/inventory/report.html',
-            category=category,
-            page=page
-        )
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
+    return render_template(
+        'employee_site/inventory/report.html',
+        category=category,
+        page=page
+    )
 
 
-@app.route('/internal/inventory/report/ajax/top-50-part')
+@app.route('/inventory/report/ajax/top-50-part')
 @login_required
-def internal_inventory_ajax_top50part():
-    try:
-        c, conn = connection()
-        c.execute("SELECT P.*,  (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number  AND I.status IN ('NEW', 'In Stock - Claimed')) AS total_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number  AND I.status IN ('NEW', 'In Stock - Claimed') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS stock_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number  AND I.status IN ('NEW') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS claimable_amount, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number ) AS total_bought FROM part_detail AS P ORDER BY total_bought DESC LIMIT 50")
-        data = c.fetchall()
-        c.close()
-        conn.close()
-        gc.collect()
-        return simplejson.dumps(data)
-
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
+def inventory_top50part():
+    top_50_parts = sorted(
+        Part.query.all(),
+        key=lambda p: len(p.invoices),
+        reverse=True
+    )[:50]
+    return jsonify(parts_schema.dump(top_50_parts).data)
 
 
 @app.route('/internal/inventory/report/ajax/statistics')

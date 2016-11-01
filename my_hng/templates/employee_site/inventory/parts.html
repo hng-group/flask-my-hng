@@ -9,13 +9,13 @@
 
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-sm-4">
-        <h2>Stock Inventory</h2>
+        <h2>Parts</h2>
         <ol class="breadcrumb">
             <li>
-                <a href="{{ url_for('dashboard') }}/">Home</a>
+                <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li class="active">
-                <strong>Stock Inventory</strong>
+                <strong>Parts</strong>
             </li>
         </ol>
     </div>
@@ -28,7 +28,7 @@
         <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-title">
-                    <h5>Stock Inventory</h5>
+                    <h5>Parts</h5>
                     <div class="ibox-tools pull-right">
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
@@ -76,5 +76,5 @@
     <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/stock-inventory/stock_inv.js") }}"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/inventory/part/parts.js") }}"></script>
 {% endblock %}
