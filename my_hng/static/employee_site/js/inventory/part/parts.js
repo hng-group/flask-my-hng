@@ -35,16 +35,22 @@ $(document).ready(function() {
             },
 
             {
+                data: 'invoices',
                 responsivePriority: 4,
                 className: "claimable",
-                render: function (data, type, part) {
-                    // if (data >= 1) {
-                    //     var display = '<span class="fa fa-check"></span>';
-                    // } else {
-                    //     var display = '<span class="fa fa-times"></span>';
-                    // }
-
-                    return 'something';
+                render: function (invoices, type, part) {
+                  var display;
+                  var claimable = invoices.filter(function(invoice) {
+                      return [
+                        'New',
+                      ].indexOf(invoice.status) >= 0;
+                  });
+                  if (claimable.length >= 1) {
+                    display = '<span class="fa fa-check"></span>';
+                  } else {
+                    display = '<span class="fa fa-times"></span>';
+                  }
+                  return display;
                 }
             },
 
@@ -62,19 +68,26 @@ $(document).ready(function() {
                 }
             },
             {
-                responsivePriority: 2,
-                className: "stock-status",
-                render: function ( data, type, row ) {
-                    // if (data >= 3) {
-                    //     var display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-primary btn-rounded">In stock</span>';
-                    // } else if (data >= 1 && data < 3) {
-                    //     var display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-warning btn-rounded">Low stock</span>';
-                    // } else {
-                    //     var display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-danger btn-rounded">Out of stock</span>';
-                    // }
-                    return 'something';
-
+              data: 'invoices',
+              responsivePriority: 2,
+              className: "stock-status",
+              render: function (invoices, type, row) {
+                var stock_invoices = invoices.filter(function(invoice) {
+                    return [
+                      'New',
+                      'In Stock - Claimed'
+                    ].indexOf(invoice.status) >= 0;
+                });
+                var display;
+                if (stock_invoices.length >= 3) {
+                  display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-primary btn-rounded">In stock</span>';
+                } else if (stock_invoices.length >= 1 && stock_invoices.length < 3) {
+                  display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-warning btn-rounded">Low stock</span>';
+                } else {
+                  display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-danger btn-rounded">Out of stock</span>';
                 }
+                return display;
+              }
             }
         ],
         "pageLength": 30,

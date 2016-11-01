@@ -2,7 +2,7 @@ $(document).ready(function() {
     var part_invoice_table = $('#part_invoice_table').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/inventory/stock-inventory/' + part_number + '/ajax',
+            url: '/inventory/parts/' + part_number + '/ajax',
             dataSrc: 'invoices'
         },
         "deferRender": true,

@@ -190,7 +190,7 @@
     <script>
     $(document).ready(function() {
         var options = {
-            url: "/inventory/stock-inventory/ajax",
+            url: "/inventory/parts/ajax",
             getValue: "part_number",
             requestDelay: 300,
             template: {
@@ -203,7 +203,7 @@
                     } else {
                         var display = '<span class="pull-right label label-danger btn-rounded">Out of stock</span>';
                     }
-                    return '<div class="text-left"><a href="/internal/inventory/stock-inventory/' + item.part_number + '/view/">' + item.part_number + display + '</a></div>';
+                    return '<div class="text-left"><a href="/inventory/parts/' + item.part_number + '/">' + item.part_number + display + '</a></div>';
                 }
             },
 
