@@ -975,10 +975,10 @@ def update_part(part_number):
         part.price = float(request.form['part_price'])
         part.image_url = request.form['image_url']
         db.session.commit()
+        message = ('Part detail updated', 'alert-success')
     except:
-        flash('Update failed, try again', 'alert-danger')
-        return redirect(url_for('view_part', part_number=part_number))
-    flash('Part detail updated', 'alert-success')
+        message = ('Failed, try again', 'alert-danger')
+    flash(*message)
     return redirect(url_for('view_part', part_number=part_number))
 
 

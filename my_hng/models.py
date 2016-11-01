@@ -15,7 +15,7 @@ class Part(db.Model):
     part_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
     description = db.Column(db.Unicode(255))
     machine_type = db.Column(db.Unicode(100))
-    price = db.Column(db.DECIMAL)
+    price = db.Column(db.DECIMAL(10, 2))
     image_url = db.Column(db.Unicode(500))
     invoices = db.relationship('InvoiceDetail', back_populates='part')
 
