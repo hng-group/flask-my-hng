@@ -755,7 +755,6 @@ def new_invoice_excel():
         )
         # Check for valid Samsung invoice format
         if all(k in excel_file for k in samsung_keys):
-            import pdb; pdb.set_trace()
             invoice_number = excel_file['Delivery No'][0]
             if Invoice.query.get(invoice_number):
                 flash('This invoice already exists', 'alert-danger')
@@ -763,6 +762,7 @@ def new_invoice_excel():
             invoice = Invoice(invoice_number=invoice_number)
             for idx, part_number in enumerate(excel_file['Shipped Parts']):
                 qty = int(excel_file['Qty'][idx])
+                purchase_order_number = excel_file['P/O No'][idx]
                 description = excel_file['Description'][idx].strip()
                 price = float(excel_file['Amount'][idx]) / qty
                 part = Part.get_or_create(part_number, db.session)
@@ -771,6 +771,7 @@ def new_invoice_excel():
                 for _ in range(qty):
                     invoice_detail = InvoiceDetail(
                         invoice_number=invoice_number,
+                        purchase_order_number=purchase_order_number,
                     )
                     invoice_detail.part = part
                     invoice.parts.append(invoice_detail)
