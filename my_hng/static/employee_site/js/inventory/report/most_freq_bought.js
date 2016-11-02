@@ -52,7 +52,7 @@ $(document).ready(function() {
                   });
                   var display;
                   if (stock_invoices.length >= 3) {
-                    display = '<span class="label label-primary btn-rounded">In stock</span>';
+                    display = '<span class="label label-green btn-rounded">In stock</span>';
                   } else if (stock_invoices.length >= 1 && stock_invoices.length < 3) {
                     display = '<span class="label label-warning btn-rounded">Low stock</span>';
                   } else {

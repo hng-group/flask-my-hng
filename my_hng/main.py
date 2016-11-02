@@ -365,13 +365,13 @@ def client_list():
             # NOTE: This feature is dependent on Service Fusion customer report
             # If they change their excel format, the source code has to be
             # modified to accomodate.
-            if excel_file[5][5] == 'Primary Contact First Name' and\
-                excel_file[5][6] == 'Primary Contact Last Name' and\
-                excel_file[5][7] == 'Primary Contact Phone 1' and\
-                excel_file[5][14] == 'Primary Service Location Address 1' and\
-                excel_file[5][15] == 'Primary Service Location Address 2' and\
-                excel_file[5][16] == 'Primary Service Location City' and\
-                excel_file[5][27] == 'Date Created':
+            if (excel_file[5][5] == 'Primary Contact First Name' and
+                excel_file[5][6] == 'Primary Contact Last Name' and
+                excel_file[5][7] == 'Primary Contact Phone 1' and
+                excel_file[5][14] == 'Primary Service Location Address 1' and
+                excel_file[5][15] == 'Primary Service Location Address 2' and
+                excel_file[5][16] == 'Primary Service Location City' and
+                    excel_file[5][27] == 'Date Created'):
                 for each_line in excel_file[6:]:
                     email = str(each_line[8]).strip()
                     first_name = str(each_line[5]).strip()
@@ -456,7 +456,11 @@ def client_newsletter():
             test_email = request.json['testEmail']
             subject = request.json['subject']
             newsletter_html = request.json['newsletterBody']
-            unsubscription_html = '<p style="text-align: center; "><font color="#9c9c94"><a href="http://myhng.net/client/email-setting/%s">Change your email setting</a></font></p>' % (test_email)
+            unsubscription_html = """
+                <p style="text-align: center; "><font color="#9c9c94">
+                <a href="http://myhng.net/client/email-setting/{}">
+                Change your email setting</a></font></p>
+                """.format(test_email)
             msg = Message(
                 sender=("HNG Appliances", "no-reply@hngappliances.com"),
                 recipients=[test_email],
@@ -491,7 +495,7 @@ def client_newsletter():
         )
 
 
-@app.route('/client/email-setting/<path:client_email>/', methods=["GET", "POST"])
+@app.route('/client/email-setting/<path:client_email>/', methods=['GET', 'POST'])
 def client_email_setting(client_email):
     page = 'Email Setting'
     if request.method == "POST":
@@ -648,14 +652,11 @@ def internal_flow_chart():
     return render_template('employee_site/flow-chart.html', page=page)
 
 
-@app.route('/front-page/cms/', methods=["GET", "POST"])
+@app.route('/front-page/cms/')
 @login_required
 def frontpage_cms():
     page = 'CMS'
-    if request.method == "POST":
-        pass
-    else:
-        return render_template('employee_site/front-page/cms.html', page=page)
+    return render_template('employee_site/front-page/cms.html', page=page)
 
 
 @app.route('/front-page/cms/ajax/allarticles')
@@ -1013,32 +1014,26 @@ def inventory_top50part():
     return jsonify(parts_schema.dump(top_50_parts).data)
 
 
-@app.route('/internal/inventory/report/ajax/statistics')
+@app.route('/inventory/report/ajax/statistics')
 @login_required
-def internal_inventory_ajax_statistics():
-    try:
-        c, conn = connection()
-        c.execute("SELECT * FROM part_detail")
-        part_detail_data = []
-        for p in c:
-            c.execute("SELECT P.part_number, P.part_description, P.machine_type, P.part_price, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed')) AS total_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS stock_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS claimable_amount FROM part_detail AS P WHERE part_number = '%s'" % ( thwart(p[0]) ))
-            part = c.fetchone()
-            if part[3] is not None and part[5] is not None:
-                stock_value = part[3] * part[5]
-            else:
-                stock_value = 0
-            if part[3] is not None and part[6] is not None:
-                unclaimed_value = part[3] * part[6]
-            else:
-                unclaimed_value = 0
-            part_detail_data.append([part[0], part[1], part[2], part[3], part[4], part[5], part[6], stock_value, unclaimed_value])
-        c.close()
-        conn.close()
-        gc.collect()
-        return simplejson.dumps(part_detail_data)
-
-    except Exception as e:
-        return render_template('employee_site/500.html', error=e)
+def inventory_statistics():
+    part_detail_data = []
+    for p in c:
+        c.execute("SELECT P.part_number, P.part_description, P.machine_type, P.part_price, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed')) AS total_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS stock_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS claimable_amount FROM part_detail AS P WHERE part_number = '%s'" % ( thwart(p[0]) ))
+        part = c.fetchone()
+        if part[3] is not None and part[5] is not None:
+            stock_value = part[3] * part[5]
+        else:
+            stock_value = 0
+        if part[3] is not None and part[6] is not None:
+            unclaimed_value = part[3] * part[6]
+        else:
+            unclaimed_value = 0
+        part_detail_data.append([part[0], part[1], part[2], part[3], part[4], part[5], part[6], stock_value, unclaimed_value])
+    c.close()
+    conn.close()
+    gc.collect()
+    return simplejson.dumps(part_detail_data)
 
 
 @app.route('/internal/inventory/report/shelf/', methods=["GET", "POST"])

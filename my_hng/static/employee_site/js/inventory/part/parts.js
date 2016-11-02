@@ -80,7 +80,7 @@ $(document).ready(function() {
                 });
                 var display;
                 if (stock_invoices.length >= 3) {
-                  display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-primary btn-rounded">In stock</span>';
+                  display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-green btn-rounded">In stock</span>';
                 } else if (stock_invoices.length >= 1 && stock_invoices.length < 3) {
                   display = '<a class="part-reserve"><i class="fa fa-circle-o-notch"></i></a> &nbsp;<span class="label label-warning btn-rounded">Low stock</span>';
                 } else {
