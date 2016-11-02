@@ -20,3 +20,8 @@ def us_to_sql_date(original):
         str(original),
         '%m/%d/%Y'
     ).strftime('%Y-%m-%d')
+
+
+def get_tracking_url(tracking_number):
+    """Get UPS or KWI url."""
+    pass

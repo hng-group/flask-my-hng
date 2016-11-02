@@ -22,17 +22,15 @@
     <div class="middle-box text-center loginscreen animated fadeInDown">
         <div>
             <div>
-
-                <h1 style="font-size:135px; font-weight: 500">HNG</h1>
-
+              <img src="{{ url_for('static', filename = "employee_site/img/MyHNGlogo-small.png") }}" width="300px">
             </div>
             {% include "security/_messages.html" %}
             <h3>Welcome to My HNG</h3>
             <p>Enter your HNG email and password to log in. <span style="color:red;">Please use GSPN credential for now.</span></p>
             <form id="login_form" class="m-t" action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
-            	
+
 				{{ login_user_form.hidden_tag() }}
-				
+
 				<div class="form-group">
 					{{ render_field_with_errors(login_user_form.email, class_="form-control", placeholder="HNG email") }}
 				</div>
@@ -40,7 +38,7 @@
 					{{ render_field_with_errors(login_user_form.password, class_="form-control", placeholder="Password") }}
 				</div>
 				<div class="checkbox">
-					{{ render_field_with_errors(login_user_form.remember) }} 
+					{{ render_field_with_errors(login_user_form.remember) }}
 					<label for="remember"> Remember me</label>
 				</div>
 				{{ render_field(login_user_form.next) }}

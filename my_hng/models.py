@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import RoleMixin, UserMixin
+from datetime import datetime
 
 db = SQLAlchemy()
 
 
 class Invoice(db.Model):
     invoice_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
-    received_date = db.Column(db.Date, nullable=False)
+    received_date = db.Column(db.Date, default=datetime.today())
     parts = db.relationship('InvoiceDetail', back_populates="invoice")
 
 
@@ -22,7 +23,7 @@ class Part(db.Model):
     @classmethod
     def get_or_create(
         cls, part_number, session,
-        description=None, machine_type=None, price=None,
+        description=None, machine_type='Other', price=None,
     ):
         part = cls.query.get(part_number)
         if not part:

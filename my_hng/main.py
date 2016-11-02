@@ -26,7 +26,6 @@ from models import (
     db, Invoice, Part, InvoiceDetail, Role, User,
     Exam, Question, Answer, UserExam, Client, Article,
 )
-from dbconnect import connection
 from MySQLdb import escape_string as thwart
 from flask_socketio import SocketIO, emit
 from flask_security import (
@@ -56,7 +55,7 @@ app.config['SECURITY_CHANGEABLE'] = True
 app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
 app.config['SECURITY_PASSWORD_SALT'] = '$2a$16$PnnIgfMwkOjGX4SkHqSOPO'
 app.config['SECURITY_TOKEN_MAX_AGE'] = 10
-app.config['SECURITY_POST_LOGIN_VIEW'] = '/internal/'
+app.config['SECURITY_POST_LOGIN_VIEW'] = '/'
 app.config['SECURITY_POST_LOGOUT_VIEW'] = '/login'
 
 # Email config
@@ -69,11 +68,15 @@ app.config['MAIL_USERNAME'] = 'no-reply@hngappliances.com'
 app.config['MAIL_PASSWORD'] = '%~?qL63t-EqK'
 app.config['MAIL_DEFAULT_SENDER'] = 'no-reply@hngappliances.com'
 app.config['MAIL_MAX_EMAILS'] = 30
-mail = Mail(app)
 
-db.init_app(app)
-ma = Marshmallow(app)
-socketio = SocketIO(app)
+
+mail = Mail(app)  # Flask-Mail init
+db.init_app(app)  # Flask-SQLAlchemy init
+ma = Marshmallow(app)  # Flask-Marshmallow init
+socketio = SocketIO(app)  # Flask-Socketio init
+# Flask-Security init
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+security = Security(app, user_datastore)
 
 
 class RoleSchema(ma.ModelSchema):
@@ -153,10 +156,6 @@ invoice_schema = InvoiceSchema()
 invoices_schema = InvoiceSchema(many=True)
 part_schema = PartSchema()
 parts_schema = PartSchema(many=True)
-
-# Setup Flask-Security
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security = Security(app, user_datastore)
 
 
 @app.errorhandler(500)
@@ -550,8 +549,8 @@ def knowledge_exam_ajax_allexams():
             "id": exam.id,
             "name": exam.name,
             "description": exam.description,
-            "start_date": convert_date(exam.start_date),
-            "end_date": convert_date(exam.end_date),
+            "start_date": sql_to_us_date(exam.start_date),
+            "end_date": sql_to_us_date(exam.end_date),
             "limit_minutes": exam.limit_minutes
         })
     return simplejson.dumps(available_exams)
@@ -571,11 +570,11 @@ def knowledge_exam_ajax_completedexams():
             "id": exam.id,
             "name": exam.name,
             "description": exam.description,
-            "start_date": convert_date(exam.start_date),
-            "end_date": convert_date(exam.end_date),
+            "start_date": sql_to_us_date(exam.start_date),
+            "end_date": sql_to_us_date(exam.end_date),
             "limit_minutes": exam.limit_minutes,
             "score": each.score,
-            "taken_date": convert_date(each.taken_date)
+            "taken_date": sql_to_us_date(each.taken_date)
         })
     return simplejson.dumps(completed_exams)
 
@@ -608,7 +607,6 @@ def knowledge_exam_view(exam_id):
         db.session.commit()
         flash('Test submitted', 'alert-success')
         return redirect(url_for('knowledge_exam'))
-
     else:
         page = "Exam"
         exam = Exam.query.filter_by(id=exam_id).first()
@@ -617,8 +615,8 @@ def knowledge_exam_view(exam_id):
         question_answers = {}
         for question in all_questions:
             answers = {}
-            for answer in Answer.query.filter_by(question_id=question.id).all():
-                answers[answer.id] = answer.answer
+            for a in Answer.query.filter_by(question_id=question.id).all():
+                answers[a.id] = a.answer
             question_answers[question.id] = answers
         return render_template(
             'employee_site/knowledge/view_exam.html',
@@ -645,9 +643,9 @@ def knowledge_exam_report(exam_id):
          )
 
 
-@app.route('/internal/flow-chart/')
+@app.route('/flow-chart/')
 @login_required
-def internal_flow_chart():
+def flow_chart():
     page = "Flow Chart"
     return render_template('employee_site/flow-chart.html', page=page)
 
@@ -732,64 +730,65 @@ def frontpage_cms_edit(article_id):
         )
 
 
-@app.route('/inventory/invoices/', methods=["GET", "POST"])
+@app.route('/inventory/invoices/')
 @login_required
 @roles_accepted('admin', 'management')
 def invoices():
     category = 3
     page = "Invoices"
-    if request.method == "POST":
-        try:
-            excel_file = request.get_array(field_name='invoice_file')
-            # Check for valid Samsung invoice format
-            if excel_file[0][0] == 'No' and excel_file[0][1] == 'Billing Doc':
-                invoice_number = excel_file[1][13]
-                date_received = datetime.date.today()
-                associated_parts = []
-                for each_line in excel_file[1:]:
-                    for _ in range(int(each_line[8])):
-                        part = {
-                            'part_number': each_line[7],
-                            'part_description': each_line[16],
-                            'part_price': float(each_line[9])/float(each_line[8]),
-                            'assoc_po': each_line[18],
-                        }
-                        associated_parts.append(part)
-                invoice = Invoice(
-                    invoice_number, date_received, associated_parts
-                )
-                if invoice.check_if_exist() is False:
-                    invoice.import_invoice_from_excel()
-                    flash("Imported excel file successfully", 'alert-success')
-                else:
-                    flash("Invoice existed, action denied", 'alert-danger')
-            else:
-                flash("Invalid file, try again", 'alert-danger')
-            return render_template(
-                'employee_site/inventory/invoices.html',
-                category=category,
-                page=page
-            )
-        except Exception:
-            flash('Something went wrong, please try again', 'alert-danger')
-            return render_template(
-                'employee_site/inventory/invoices.html',
-                category=category,
-                page=page
-            )
-    else:
-        return render_template(
-            'employee_site/inventory/invoices.html',
-            category=category,
-            page=page
+    return render_template(
+        'employee_site/inventory/invoices.html',
+        category=category,
+        page=page
+    )
+
+
+@app.route('/inventory/invoices/', methods=['POST'])
+@login_required
+@roles_accepted('admin', 'management')
+def new_invoice_excel():
+    try:
+        excel_file = request.get_dict(field_name='invoice_file')
+        samsung_keys = (
+            'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
+            'P/O No', 'Description', 'Tracking No',
         )
+        # Check for valid Samsung invoice format
+        if all(k in excel_file for k in samsung_keys):
+            import pdb; pdb.set_trace()
+            invoice_number = excel_file['Delivery No'][0]
+            if Invoice.query.get(invoice_number):
+                flash('This invoice already exists', 'alert-danger')
+                return redirect(url_for('invoices'))
+            invoice = Invoice(invoice_number=invoice_number)
+            for idx, part_number in enumerate(excel_file['Shipped Parts']):
+                qty = int(excel_file['Qty'][idx])
+                description = excel_file['Description'][idx].strip()
+                price = float(excel_file['Amount'][idx]) / qty
+                part = Part.get_or_create(part_number, db.session)
+                part.description = description
+                part.price = price
+                for _ in range(qty):
+                    invoice_detail = InvoiceDetail(
+                        invoice_number=invoice_number,
+                    )
+                    invoice_detail.part = part
+                    invoice.parts.append(invoice_detail)
+            db.session.add(invoice)
+            db.session.commit()
+            flash('Imported excel file successfully', 'alert-success')
+        else:
+            flash('Invalid file, try again', 'alert-danger')
+    except Exception:
+        flash('Something went wrong, please try again', 'alert-danger')
+    return redirect(url_for('invoices'))
 
 
 @app.route('/inventory/invoices/ajax')
 @login_required
 def invoices_ajax():
     all_invoices = invoices_schema.dump(Invoice.query.all()).data
-    return json.dumps(all_invoices)
+    return jsonify(all_invoices)
 
 
 @socketio.on('import invoice', namespace='/socketio')
@@ -842,7 +841,7 @@ def new_invoice_post():
         part = Part.get_or_create(x, db.session)
         invoice_detail.part = part
         invoice.parts.append(invoice_detail)
-        db.session.add(invoice)
+    db.session.add(invoice)
     db.session.commit()
     flash('Invoice created successfully', 'alert-success')
     return redirect(url_for('invoices'))
