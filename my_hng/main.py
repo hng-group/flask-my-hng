@@ -13,9 +13,7 @@ stack overflow. I will make sure the source code is well commented.
 import flask
 import simplejson
 import json
-import datetime
-import gc
-import flask_excel as excel
+from datetime import datetime
 import os
 from random import shuffle
 from flask import (
@@ -26,7 +24,6 @@ from models import (
     db, Invoice, Part, InvoiceDetail, Role, User,
     Exam, Question, Answer, UserExam, Client, Article,
 )
-from MySQLdb import escape_string as thwart
 from flask_socketio import SocketIO, emit
 from flask_security import (
     Security, SQLAlchemyUserDatastore,
@@ -161,10 +158,6 @@ parts_schema = PartSchema(many=True)
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('employee_site/500.html', error=error), 500
-
-
-date_format = '%m/%d/%Y'
-today_date = datetime.date.today()
 
 
 @app.route('/')
@@ -602,7 +595,7 @@ def knowledge_exam_view(exam_id):
             results[question.id] = answer
 
         user_exam.score = score
-        user_exam.taken_date = today_date
+        user_exam.taken_date = datetime.today()
         user_exam.is_available = "F"
         db.session.commit()
         flash('Test submitted', 'alert-success')
@@ -932,24 +925,6 @@ def internal_stock_inventory_ajax():
     return jsonify(stock_parts)
 
 
-@app.route(
-    '/internal/inventory/stock-inventory/settings/',
-    methods=["GET", "POST"]
-)
-@login_required
-@roles_accepted('admin', 'management')
-def stock_inventory_settings():
-    category = 3
-    page = "Stock Inventory Settings"
-    if request.method == 'POST':
-        return jsonify({"result": request.get_array(field_name='file')})
-    return render_template(
-        'employee_site/inventory/stock_inventory_settings.html',
-        category=category,
-        page=page
-    )
-
-
 @app.route('/inventory/parts/<path:part_number>/')
 @login_required
 @roles_accepted('admin', 'management')
@@ -976,10 +951,9 @@ def update_part(part_number):
         part.price = float(request.form['part_price'])
         part.image_url = request.form['image_url']
         db.session.commit()
-        message = ('Part detail updated', 'alert-success')
+        flash('Part detail updated', 'alert-success')
     except:
-        message = ('Failed, try again', 'alert-danger')
-    flash(*message)
+        flash('Failed, try again', 'alert-danger')
     return redirect(url_for('view_part', part_number=part_number))
 
 
@@ -1012,28 +986,6 @@ def inventory_top50part():
         reverse=True
     )[:50]
     return jsonify(parts_schema.dump(top_50_parts).data)
-
-
-@app.route('/inventory/report/ajax/statistics')
-@login_required
-def inventory_statistics():
-    part_detail_data = []
-    for p in c:
-        c.execute("SELECT P.part_number, P.part_description, P.machine_type, P.part_price, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed')) AS total_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW', 'In Stock - Claimed') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS stock_quantity, (SELECT COUNT(*) FROM invoice_detail AS I WHERE I.part_number = P.part_number AND I.status IN ('NEW') AND I.shelf_location IS NOT NULL AND I.shelf_location NOT IN ('N/A', 'n/a', '')) AS claimable_amount FROM part_detail AS P WHERE part_number = '%s'" % ( thwart(p[0]) ))
-        part = c.fetchone()
-        if part[3] is not None and part[5] is not None:
-            stock_value = part[3] * part[5]
-        else:
-            stock_value = 0
-        if part[3] is not None and part[6] is not None:
-            unclaimed_value = part[3] * part[6]
-        else:
-            unclaimed_value = 0
-        part_detail_data.append([part[0], part[1], part[2], part[3], part[4], part[5], part[6], stock_value, unclaimed_value])
-    c.close()
-    conn.close()
-    gc.collect()
-    return simplejson.dumps(part_detail_data)
 
 
 @app.route('/internal/inventory/report/shelf/', methods=["GET", "POST"])
@@ -1071,8 +1023,6 @@ def inventory_shelf_report():
 @login_required
 @roles_accepted('admin', 'management')
 def inventory_shelf_report_ajax():
-    category = 3
-    page = "Shelf Report"
     all_shelves = [
         'A0', 'A1', 'A2', 'A2-1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8',
         'A9', 'B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8',
