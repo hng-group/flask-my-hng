@@ -1,10 +1,4 @@
 $(document).ready(function() {
-    var socket = io('http://' + document.domain + '/socketio');
-
-    socket.on('my response', function() {
-        invoice_table.ajax.reload( null, false );
-    });
-
     var invoice_table = $('#invoice_table').DataTable( {
         "responsive": true,
         "ajax": {
@@ -25,7 +19,10 @@ $(document).ready(function() {
 
             {
                 data: "received_date",
-                responsivePriority: 2
+                responsivePriority: 2,
+                render: function(date, type, row) {
+                  return utils.toUSDate(date);
+                }
             },
 
             {
@@ -61,4 +58,8 @@ $(document).ready(function() {
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });
+
+    setInterval(function(){
+      invoice_table.ajax.reload(null, false);
+    }, 15000);
 });

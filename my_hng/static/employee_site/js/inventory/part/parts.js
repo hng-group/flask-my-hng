@@ -97,6 +97,7 @@ $(document).ready(function() {
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });
+    
     setInterval(function(){
       stock_inv.ajax.reload(null, false);
     }, 15000);

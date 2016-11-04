@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/bs/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.11,b-1.1.2,b-flash-1.1.2,b-html5-1.1.2,b-print-1.1.2,r-2.0.2/datatables.min.css">
 <!--     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css"> -->
-    
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = "employee_site/css/plugins/sweetalert/sweetalert.css") }}">
 
 {% endblock %}
@@ -44,7 +44,7 @@
                     <div class="row">
                         <div class="col-md-12 col-md-offset-3">
                             <div class="panel-body">
-                                <form action="" method="POST" class="form-inline" enctype="multipart/form-data">
+                                <form id="shelf_report_form" action="" method="POST" class="form-inline" >
                                     <div class="form-group">
                                         <label for="shelf">Choose Shelf</label>
                                         <select id="shelf" name="shelf" class="form-control" >
@@ -53,8 +53,8 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <a href="#" class="btn btn-primary" id="get_shelf_report">Get Report</a>
-                                    <a href="#" class="btn btn-info" id="clear_table">Clear</a>
+                                    <button type="submit" class="btn btn-primary" id="get_shelf_report">Get Report</button>
+                                    <a href="" class="btn btn-info" id="clear_table">Clear</a>
                                 </form>
                             </div>
                         </div>
@@ -88,12 +88,12 @@
     <script src="https://cdn.datatables.net/t/bs/jszip-2.5.0,pdfmake-0.1.18,dt-1.10.11,b-1.1.2,b-flash-1.1.2,b-html5-1.1.2,b-print-1.1.2,r-2.0.2/datatables.min.js"></script>
 
 <!--     // <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
-    
+
     // <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
     // <script src="https://cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
     // <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
     // <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script> -->
-    
+
     <script src="{{ url_for('static', filename = "employee_site/js/plugins/datapicker/bootstrap-datepicker.js") }}"></script>
         <script src="{{ url_for('static', filename = "employee_site/js/plugins/sweetalert/sweetalert.min.js") }}"></script>
     <script src="{{ url_for('static', filename = "employee_site/js/inventory/report/shelf_report.js") }}"></script>

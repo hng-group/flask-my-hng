@@ -13,7 +13,7 @@ stack overflow. I will make sure the source code is well commented.
 import flask
 import simplejson
 import json
-from datetime import datetime
+import datetime
 import os
 from random import shuffle
 from flask import (
@@ -41,7 +41,7 @@ app.config['SECRET_KEY'] = 'super-secret'
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 # Mysql config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root@localhost/my_hng'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost/my_hng'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # Flask-security config
@@ -125,6 +125,9 @@ class InvoiceDetailSchema(ma.ModelSchema):
     class Meta:
         model = InvoiceDetail
 
+    invoice = ma.Nested(InvoiceSchema)
+    part = ma.Nested('PartSchema', exclude=('invoices',))
+
 
 class PartSchema(ma.ModelSchema):
     class Meta:
@@ -153,6 +156,8 @@ invoice_schema = InvoiceSchema()
 invoices_schema = InvoiceSchema(many=True)
 part_schema = PartSchema()
 parts_schema = PartSchema(many=True)
+invoice_detail_schema = InvoiceDetailSchema()
+invoices_detail_schema = InvoiceDetailSchema(many=True)
 
 
 @app.errorhandler(500)
@@ -595,7 +600,7 @@ def knowledge_exam_view(exam_id):
             results[question.id] = answer
 
         user_exam.score = score
-        user_exam.taken_date = datetime.today()
+        user_exam.taken_date = datetime.date.today()
         user_exam.is_available = "F"
         db.session.commit()
         flash('Test submitted', 'alert-success')
@@ -988,49 +993,37 @@ def inventory_top50part():
     return jsonify(parts_schema.dump(top_50_parts).data)
 
 
-@app.route('/internal/inventory/report/shelf/', methods=["GET", "POST"])
+@app.route('/inventory/shelf/')
 @login_required
 @roles_accepted('admin', 'management')
 def inventory_shelf_report():
     category = 3
     page = "Shelf Report"
-    all_shelves = [
-        'A0', 'A1', 'A2', 'A2-1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8',
-        'A9', 'B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8',
-        'B9', 'C1', 'C2', 'C3', 'C4', 'D0'
-    ]
-    if request.method == "POST":
-        shelf = request.form['shelf']
-        shelf_report_data = Part.get_shelf_report(shelf)
-        flash(shelf_report_data, 'alert-success')
-        return render_template(
-            'employee_site/inventory/shelf_report.html',
-            category=category,
-            page=page,
-            all_shelves=all_shelves
-        )
-    else:
-
-        return render_template(
-            'employee_site/inventory/shelf_report.html',
-            category=category,
-            page=page,
-            all_shelves=all_shelves
-        )
+    query = db.session.query(
+        InvoiceDetail.shelf_location.distinct().label('shelf_location')
+    )
+    all_shelves = [i.shelf_location for i in query.all() if i.shelf_location]
+    return render_template(
+        'employee_site/inventory/shelf_report.html',
+        category=category,
+        page=page,
+        all_shelves=all_shelves
+    )
 
 
-@app.route('/internal/inventory/report/shelf/ajax', methods=["GET", "POST"])
+@app.route('/inventory/shelf/', methods=['POST'])
 @login_required
 @roles_accepted('admin', 'management')
-def inventory_shelf_report_ajax():
-    all_shelves = [
-        'A0', 'A1', 'A2', 'A2-1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8',
-        'A9', 'B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8',
-        'B9', 'C1', 'C2', 'C3', 'C4', 'D0'
-    ]
-    shelf_report_data = simplejson.dumps(Part.get_shelf_report('A0'))
-
-    return shelf_report_data
+def inventory_get_shelf():
+    shelf = request.form['shelf']
+    invoices = InvoiceDetail.query.filter(
+        InvoiceDetail.shelf_location == shelf,
+    ).filter(
+        InvoiceDetail.status.in_(('New', 'In Stock - Claimed')),
+    ).all()
+    return jsonify(
+        invoices_detail_schema.dump(invoices).data
+    )
 
 
 @socketio.on('shelf report', namespace='/socketio')
