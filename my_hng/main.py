@@ -10,10 +10,10 @@ graduated from school. It was a result of my limited knowledge, google and
 stack overflow. I will make sure the source code is well commented.
 """
 
-import flask
 import simplejson
 import json
 import datetime
+import os
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -39,8 +39,8 @@ app.jinja_env.globals.update(sql_to_us_date=sql_to_us_date)
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
-# Mysql config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost/my_hng'
+# Mysql config 'mysql+pymysql://root@localhost/my_hng
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # Flask-security config
@@ -49,7 +49,7 @@ app.config['SECURITY_RECOVERABLE'] = True
 # app.config['SECURITY_CONFIRMABLE'] = True
 app.config['SECURITY_CHANGEABLE'] = True
 app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
-app.config['SECURITY_PASSWORD_SALT'] = '$2a$16$PnnIgfMwkOjGX4SkHqSOPO'
+app.config['SECURITY_PASSWORD_SALT'] = os.environ['SALT']
 app.config['SECURITY_TOKEN_MAX_AGE'] = 10
 app.config['SECURITY_POST_LOGIN_VIEW'] = '/'
 app.config['SECURITY_POST_LOGOUT_VIEW'] = '/login'
@@ -61,7 +61,7 @@ app.config['MAIL_SERVER'] = 'mail.hngappliances.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'no-reply@hngappliances.com'
-app.config['MAIL_PASSWORD'] = '%~?qL63t-EqK'
+app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
 app.config['MAIL_DEFAULT_SENDER'] = 'no-reply@hngappliances.com'
 app.config['MAIL_MAX_EMAILS'] = 30
 
