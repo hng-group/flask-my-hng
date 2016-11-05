@@ -196,14 +196,23 @@
             template: {
                 type: "custom",
                 method: function(value, item) {
-                    if (item.stock_quantity >= 3) {
-                        var display = '<span class="pull-right label label-primary btn-rounded">In stock</span>';
-                    } else if (item.stock_quantity >= 1 && item.stock_quantity < 3) {
-                        var display = '<span class="pull-right label label-warning btn-rounded">Low stock</span>';
-                    } else {
-                        var display = '<span class="pull-right label label-danger btn-rounded">Out of stock</span>';
-                    }
-                    return '<div class="text-left"><a href="/inventory/parts/' + item.part_number + '/">' + item.part_number + display + '</a></div>';
+                  item.stock_invoices = item.invoices.filter(function(invoice) {
+                      return [
+                        'New',
+                        'In Stock - Claimed'
+                      ].indexOf(invoice.status) >= 0;
+                  });
+
+                  var display;
+
+                  if (item.stock_invoices.length >= 3) {
+                      display = '<span class="pull-right label label-green btn-rounded">In stock</span>';
+                  } else if (item.stock_invoices.length >= 1 && item.stock_invoices.length < 3) {
+                      display = '<span class="pull-right label label-warning btn-rounded">Low stock</span>';
+                  } else {
+                      display = '<span class="pull-right label label-danger btn-rounded">Out of stock</span>';
+                  }
+                  return '<div class="text-left"><a href="/inventory/parts/' + item.part_number + '/">' + item.part_number + display + '</a></div>';
                 }
             },
 

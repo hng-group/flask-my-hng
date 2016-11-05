@@ -12,8 +12,8 @@ $(document).ready(function() {
             {
                 data: "invoice",
                 responsivePriority: 1,
-                render: function ( data, type, row ) {
-                    return '<a href="/inventory/invoices/' + data + '/">' + data + '</a>';
+                render: function ( invoice, type, row ) {
+                    return '<a href="/inventory/invoices/' + invoice.invoice_number+ '/">' + invoice.invoice_number + '</a>';
                 }
             },
 

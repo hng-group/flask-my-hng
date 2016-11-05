@@ -113,7 +113,7 @@
                                                 <input type="text" class="form-control part_input text-center" placeholder="" value="{{ sql_to_us_date(part.claimed_date) }}">
                                             </td>
                                             <td>
-                                                <input type="text" name="locations[]" class="form-control part_input text-center" placeholder="" value="{{ part.shelf_location }}">
+                                                <input type="text" name="locations[]" class="form-control part_input text-center" placeholder="" value="{{ part.shelf_location | default('', True) }}">
                                             </td>
                                             <td>
                                                 <select name="statuses[]" class="form-control" >

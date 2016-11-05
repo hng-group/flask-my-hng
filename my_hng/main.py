@@ -14,7 +14,6 @@ import flask
 import simplejson
 import json
 import datetime
-import os
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -1026,18 +1025,6 @@ def inventory_get_shelf():
     )
 
 
-@socketio.on('shelf report', namespace='/socketio')
-def socketio_inv_shelf_report(message):
-    if current_user.is_authenticated:
-        shelf_report_data = simplejson.dumps(Part.get_shelf_report(message['shelf']))
-        emit("shelf report data", shelf_report_data)
-    else:
-        emit(
-            'shelf report error',
-            {'data': 'Current user is not authenticated'}
-        )
-
-
 @app.route('/test/')
 @login_required
 def internal_test():
@@ -1057,4 +1044,4 @@ def test_ajax():
         return render_template('employee_site/500.html', error=e)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='localhost', debug=True)
