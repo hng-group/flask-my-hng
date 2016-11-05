@@ -154,3 +154,8 @@
 }
 
 /* end Summernote message detail style */
+
+.label-green, .badge-green {
+    background-color: #1ab394;
+    color: #FFFFFF;
+}

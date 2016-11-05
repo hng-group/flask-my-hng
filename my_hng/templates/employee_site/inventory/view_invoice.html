@@ -11,13 +11,13 @@
     <h2>View Invoice</h2>
         <ol class="breadcrumb">
             <li>
-                <a href="/internal/">Home</a>
+                <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li>
-                <a href="/internal/inventory/invoices/">Invoices</a>
+                <a href="{{ url_for('invoices') }}">Invoices</a>
             </li>
             <li class="active">
-                <strong>{{ invoice_data[0] }}</strong>
+                <strong>{{ invoice.invoice_number }}</strong>
             </li>
         </ol>
     </div>
@@ -26,7 +26,6 @@
     </div>
 </div>
 
-<p>{{ error }}</p>
 
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
@@ -34,41 +33,21 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <h5>Invoice Detail </h5>
-                    <div class="ibox-tools pull-right">
-                        <a href="/internal/inventory/invoices/{{ invoice_data[0] }}/delete/" class="btn btn-primary btn-sm">Delete</a>
-                    </div>
-                    <!-- <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            <i class="fa fa-wrench"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-user">
-                            <li><a href="#">Config option 1</a>
-                            </li>
-                            <li><a href="#">Config option 2</a>
-                            </li>
-                        </ul>
-                        <a class="close-link">
-                            <i class="fa fa-times"></i>
-                        </a>
-                    </div> -->
                 </div>
                 <div class="ibox-content">
                     <form action="" method="POST" enctype="multipart/form-data">
-                        <div class="row"  >
+                        <div class="row">
                             <div class="col-sm-6 col-md-9">
                                 <div class="form-group">
                                     <label class="control-label" for="invoice_number">Invoice Number</label>
-                                    <input type="text" readonly="" id="invoice_number" name="post_invoice_number" value="{% print invoice_data[0] %}" placeholder="Invoice #" class="form-control" autofocus tabindex="1">
+                                    <input type="text" readonly="" id="invoice_number" value="{{ invoice.invoice_number }}" placeholder="Invoice #" class="form-control" autofocus tabindex="1">
                                 </div>
                             </div>
                             <div class="col-sm-6 col-md-3">
                                 <div class="form-group">
-                                    <label class="control-label" for="date_received">Date received</label>
+                                    <label class="control-label" for="date_received">Received date</label>
                                     <div class="input-group date">
-                                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input id="date_received" name="date_received" type="text" class="form-control" value="{{ date_received }}">
+                                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span><input id="date_received" name="date_received" type="text" class="form-control" value="{{ sql_to_us_date(invoice.received_date) }}">
                                     </div>
                                 </div>
                             </div>
@@ -83,13 +62,11 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row" >
                             <div class="panel-body">
-
                                 <div class="table-responsive">
                                     <table class="table table-hover table-stripped table-bordered">
-
                                         <thead>
                                         <tr>
                                             <th style="width: 15%">
@@ -113,45 +90,45 @@
                                         </tr>
                                         </thead>
                                         <tbody id="part_list">
-                                        {% for each in invoice_detail_data %}
+                                        {% for part in invoice.parts %}
                                         <tr>
-                                            <input type="hidden" name="invoice_detail_id[]" class="form-control part_input" value="{% print each[0] %}">
+                                            <input type="hidden" name="invoice_detail_id[]" class="form-control part_input" value="{{ part.id }}">
                                             <td id="invoice_parts">
-                                                {% if each[6] == 1 and each[7] != None %}
+                                                {% if part.claimed == true %}
                                                 <div class="input-group has-feedback">
-                                                    <input type="text" name="part_numbers[]" class="form-control part_input" placeholder="Part Number" value="{{ each[2] }}">
+                                                    <input type="text" name="part_numbers[]" class="form-control part_input" placeholder="Part Number" value="{{ part.part_number }}">
                                                     <span class="input-group-addon glyphicon glyphicon-warning-sign"></span>
                                                 <div>
                                                 {% else %}
-                                                <input type="text" style="text-transform:uppercase" name="part_numbers[]" class="form-control part_input" placeholder="Part #" value="{% print each[2] %}">
+                                                <input type="text" style="text-transform:uppercase" name="part_numbers[]" class="form-control part_input" placeholder="Part #" value="{{ part.part_number }}">
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <input type="text" name="part_descriptions[]" class="form-control part_input" placeholder="Part description">
+                                                <input type="text" class="form-control part_input" placeholder="Part description" value="{{ part.description }}">
                                             </td>
                                             <td>
-                                                <input type="text" name="assoc_pos[]" class="form-control part_input" placeholder="Assoc. PO" value="{% print each[3] %}">
+                                                <input type="text" name="assoc_pos[]" class="form-control part_input" placeholder="Assoc. PO" value="{{ part.purchase_order_number }}">
                                             </td>
                                             <td>
-                                                <input type="text" name="part_prices[]" class="form-control part_input text-center" placeholder="" value="{{ each[7] }}">
+                                                <input type="text" class="form-control part_input text-center" placeholder="" value="{{ sql_to_us_date(part.claimed_date) }}">
                                             </td>
                                             <td>
-                                                <input type="text" name="locations[]" class="form-control part_input text-center" placeholder="" value="{% print each[4] %}">
+                                                <input type="text" name="locations[]" class="form-control part_input text-center" placeholder="" value="{{ part.shelf_location | default('', True) }}">
                                             </td>
                                             <td>
                                                 <select name="statuses[]" class="form-control" >
-                                                    <option value="New" {% if each[5] == "New" %}selected {% endif %} >New</option>
-                                                    <option value="Dispatched" {% if each[5] == "Dispatched" %}selected {% endif %}>Dispatched</option>
-                                                    <option value="In Stock - Claimed" {% if each[5] == "In Stock - Claimed" %}selected {% endif %}>In Stock - Claimed</option>
-                                                    <option value="Used - Claimed" {% if each[5] == "Used - Claimed" %}selected {% endif %}>Used - Claimed</option>
-                                                    <option value="Returned" {% if each[5] == "Returned" %}selected {% endif %}>Returned</option>
+                                                    <option value="New" {% if part.status == "New" %}selected {% endif %} >New</option>
+                                                    <option value="Dispatched" {% if part.status == "Dispatched" %}selected {% endif %}>Dispatched</option>
+                                                    <option value="In Stock - Claimed" {% if part.status == "In Stock - Claimed" %}selected {% endif %}>In Stock - Claimed</option>
+                                                    <option value="Used - Claimed" {% if part.status == "Used - Claimed" %}selected {% endif %}>Used - Claimed</option>
+                                                    <option value="Returned" {% if part.status == "Returned" %}selected {% endif %}>Returned</option>
                                                     <option value="Remove">Remove From Invoice</option>
 
                                                 </select>
                                             </td>
                                         </tr>
                                         {% endfor %}
-                                        
+
                                         <tr>
                                             <div id="add_part_button" class="btn btn-primary">Add</div>
                                         </tr>
@@ -167,8 +144,9 @@
                         <div class="row">
                             <div class="form-group">
                                 <div class="col-sm-4 col-sm-offset-2">
-                                    <a href="{{ url_for('internal_invoices')}}" class="btn btn-white">Cancel</a>
+                                    <a href="{{ url_for('invoices')}}" class="btn btn-white">Cancel</a>
                                     <button class="btn btn-primary" type="submit">Save invoice</button>
+                                    <a href="{{ url_for('invoices')}}" class="btn btn-danger">Delete</a>
                                 </div>
                             </div>
                         </div>
@@ -182,6 +160,6 @@
 {% endblock %}
 
 {% block javascript %}
-    <script src="{{ url_for('static', filename = "employee_site/js/plugins/datapicker/bootstrap-datepicker.js") }}"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/invoice/view_invoice.js") }}"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/plugins/datapicker/bootstrap-datepicker.js") }}"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/inventory/invoice/view_invoice.js") }}"></script>
 {% endblock %}

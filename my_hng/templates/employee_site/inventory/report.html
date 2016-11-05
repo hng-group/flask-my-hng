@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="alert alert-warning alert-dismissable" role="alert"> 
+<div class="alert alert-warning alert-dismissable" role="alert">
     <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
     This page is still in development stage, please check back later.
 </div>
@@ -81,22 +81,19 @@
                         <div class="sk-dot2"></div>
                     </div>
                     <br>
-                
+
                 </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-12">
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>Top 50 Most Popular Parts</h5>
                     <div class="ibox-tools">
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
-                        </a>
-                        <a href="#">
-                            <i class="fa fa-wrench"></i>
                         </a>
                         <a class="close-link">
                             <i class="fa fa-times"></i>
@@ -127,34 +124,7 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-6">
-            <div class="ibox">
-                <div class="ibox-title">
-                    <h5>Place holder for another chart</h5>
-                </div>
-                <div class="ibox-content">
-                    <div class="sk-spinner sk-spinner-chasing-dots">
-                        <div class="sk-dot1"></div>
-                        <div class="sk-dot2"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- <div class="col-lg-6">
-            <div class="ibox">
-                <div class="ibox-title">
-                    <h5>Most Frequently Bought</h5>
-                </div>
-                <div class="ibox-content">
-                    <h5>Unclaimed Inventory Value</h5>
-                    <h1 class="no-margins">123,456</h1>
-                    <div class="stat-percent font-bold text-navy">32% <i class="fa fa-bolt"></i></div>
-                    <small>Total inventory</small>
-                </div>
-            </div>
-        </div -->
-    </div>  
+    </div>
 </div>
 
 
@@ -165,6 +135,6 @@
     <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/report/most_freq_bought.js") }}"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/report/statistics.js") }}"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/inventory/report/most_freq_bought.js") }}"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/inventory/report/statistics.js") }}"></script>
 {% endblock %}

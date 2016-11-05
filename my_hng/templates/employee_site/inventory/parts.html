@@ -1,0 +1,80 @@
+{% extends "employee_site/main_template.html" %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
+{% endblock %}
+
+{% block body %}
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Parts</h2>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{{ url_for('dashboard') }}">Home</a>
+            </li>
+            <li class="active">
+                <strong>Parts</strong>
+            </li>
+        </ol>
+    </div>
+</div>
+
+
+<!-- <p> {{ part_detail_data }} </p> -->
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Parts</h5>
+                    <div class="ibox-tools pull-right">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a href="/internal/inventory/stock-inventory/settings/">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <table id="stock_inv" class="table table-hover table-striped" cellspacing="0" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Part Number</th>
+                                <th>Description</th>
+                                <th class="text-center">Machine Type</th>
+                                <th class="text-center">ASC Price</th>
+                                <th class="text-center">Claimable</th>
+                                <th class="text-center">Stock Quantity</th>
+                                <th class="text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Part Number</th>
+                                <th>Description</th>
+                                <th class="text-center">Machine Type</th>
+                                <th class="text-center">ASC Price</th>
+                                <th class="text-center">Claimable</th>
+                                <th class="text-center">Stock Quantity</th>
+                                <th class="text-right">Status</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename="employee_site/js/inventory/part/parts.js") }}"></script>
+{% endblock %}

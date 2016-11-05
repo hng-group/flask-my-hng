@@ -10,10 +10,10 @@
         <h2>New Invoices</h2>
         <ol class="breadcrumb">
             <li>
-                <a href="/internal/">Home</a>
+                <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li>
-                <a href="/internal/inventory/invoices/">Invoices</a>
+                <a href="{{ url_for('invoices') }}">Invoices</a>
             </li>
             <li class="active">
                 <strong>New Invoice</strong>
@@ -68,7 +68,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="part_input">
                             <div class="row ">
                                 <div class="col-xs-5 col-sm-5">
@@ -82,7 +82,7 @@
                                         <label class="control-label" for="assoc_po">Assoc. PO</label>
                                         <input type="text" id="assoc_po" name="assoc_pos[]" value="" placeholder="PO #" class="form-control">
                                     </div>
-                                </div> 
+                                </div>
                                 <div class="col-sm-2 hidden-xs">
                                     <div class="form-group">
                                         <label class="control-label" for="shelf_location">Shelf Location</label>
@@ -94,7 +94,7 @@
                         <div class="row">
                             <div class="form-group">
                                 <div class="col-sm-4 col-sm-offset-2">
-                                    <a href="{{ url_for('internal_invoices')}}" class="btn btn-white">Cancel</a>
+                                    <a href="{{ url_for('invoices')}}" class="btn btn-white">Cancel</a>
                                     <button class="btn btn-primary" type="submit">Create invoice</button>
                                 </div>
                             </div>

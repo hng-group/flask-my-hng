@@ -6,20 +6,20 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.10/css/dataTables.bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.0.0/css/responsive.bootstrap.min.css">
 {% endblock %}
-    
+
 {% block body %}
 <div class="row wrapper border-bottom white-bg page-heading">
     <div class="col-lg-9 col-md-7">
         <h2>Part Detail</h2>
         <ol class="breadcrumb">
             <li>
-                <a href="/internal/">Home</a>
+                <a href="{{ url_for('dashboard') }}">Home</a>
             </li>
             <li>
-                <a href="/internal/inventory/stock-inventory/">Stock Inventory</a>
+                <a href="{{ url_for('get_stock') }}">Parts</a>
             </li>
             <li class="active">
-                <strong>Part Detail</strong>
+                <strong>{{ part.part_number }}</strong>
             </li>
         </ol>
     </div>
@@ -39,15 +39,7 @@
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <a href="/internal/inventory/stock-inventory/{{ part_detail_data[0] }}/edit/">
-                            <i class="fa fa-wrench"></i>
-                        </a>
-                        <!-- <ul class="dropdown-menu dropdown-user">
-                            <li><a href="#">Config option 1</a>
-                            </li>
-                            <li><a href="#">Config option 2</a>
-                            </li>
-                        </ul> -->
+                        <a href="#" data-toggle="modal" data-target="#update_part_form"><i class="fa fa-wrench"></i></a>
                         <a class="close-link">
                             <i class="fa fa-times"></i>
                         </a>
@@ -65,7 +57,7 @@
                                         IMAGE NOT AVAILABLE
                                     </div>
                                 </div>
-                                
+
 
                             </div>
 
@@ -73,24 +65,24 @@
                         <div class="col-md-7">
 
                             <h2 class="font-bold m-b-xs">
-                                {{ part_detail_data[0] }}
+                                {{ part.part_number }}
                             </h2>
-                            <small>Machine Type: {{ part_detail_data[2] }} </small>
+                            <small>Machine Type: {{ part.machine_type }} </small>
                             <div class="m-t-md">
-                                <h2 class="product-main-price">${{ part_detail_data[3] }}</h2>
+                                <h2 class="product-main-price">${{ part.price }}</h2>
                             </div>
 
                             <h4>Part description</h4>
 
                             <div class="small text-muted">
-                                {{ part_detail_data[1] }}
+                                {{ part.description }}
                             </div>
                             <div class="m-t-md">
-                                <h3>Stock Quantity: {{ stock_quantity }}</h3>
+                                <h3>Stock Quantity: {{ part.available_invoices | length}}</h3>
                             </div>
-                            
+
                             <hr>
-                            
+
                             <div>
                                 <div class="btn-group">
                                     <button class="btn btn-primary btn-sm"><i class="fa fa-cart-plus"></i> Add to cart</button>
@@ -132,11 +124,60 @@
 </div>
 
 
+<div class="modal inmodal" id="update_part_form" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="vertical-alignment-helper">
+        <div class="modal-dialog vertical-align-center">
+            <div class="modal-content animated">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Update Part Detail</h4>
+                </div>
+                <form action="" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                      <fieldset class="form-horizontal">
+                          <div class="form-group"><label class="col-sm-2 control-label">Part Number:</label>
+                              <div class="col-sm-10"><input name="post_part_number" type="text" class="form-control" value="{{ part.part_number }}" readonly></div>
+                          </div>
+                          <div class="form-group"><label class="col-sm-2 control-label">Description:</label>
+                              <div class="col-sm-10"><input name="part_description" type="text" class="form-control" placeholder="Part decription" value="{{ part.description | default('', True) }}"></div>
+                          </div>
+                          <div class="form-group"><label class="col-sm-2 control-label">Select</label>
+
+                              <div class="col-sm-10">
+                                  <select name="machine_type" class="form-control" >
+                                      <option value="Other" {% if part.machine_type == "Other" %}selected {% endif %}>Other</option>
+                                      <option value="Dishwasher" {% if part.machine_type == "Dishwasher" %}selected {% endif %} >Dishwasher</option>
+                                      <option value="Dryer" {% if part.machine_type == "Dryer" %}selected {% endif %}>Dryer</option>
+                                      <option value="Microwave" {% if part.machine_type == "Microwave" %}selected {% endif %}>Microwave</option>
+                                      <option value="Range" {% if part.machine_type == "Range" %}selected {% endif %}>Range</option>
+                                      <option value="Refrigerator" {% if part.machine_type[2] == "Refrigerator" %}selected {% endif %}>Refrigerator</option>
+                                      <option value="Washer" {% if part.machine_type == "Washer" %}selected {% endif %}>Washer</option>
+                                  </select>
+                              </div>
+                          </div>
+                          <div class="form-group"><label class="col-sm-2 control-label">ASC Price:</label>
+                              <div class="col-sm-10"><input name="part_price" type="text" class="form-control" placeholder="Price bought from Samsung" value="{{ part.price | default('', True) }}"></div>
+                          </div>
+                          <div class="form-group"><label class="col-sm-2 control-label">Image URL:</label>
+                              <div class="col-sm-10"><input name="image_url" type="text" class="form-control" placeholder="Use direct link only" value="{{ part.image_url | default('', True) }}"></div>
+                          </div>
+                      </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                      <button type="submit" value="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block javascript %}
     <script>
-    var part_number = '{{ part_detail_data[0] }}';
+    var part_number = '{{ part.part_number }}';
     </script>
 
     <script src="https://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
@@ -144,26 +185,34 @@
     <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.0.0/js/responsive.bootstrap.min.js"></script>
-    <script src="{{ url_for('static', filename = "employee_site/js/inventory/stock-inventory/part_detail.js") }}"></script>
+    <script src="{{ url_for('static', filename = "employee_site/js/inventory/part/part_detail.js") }}"></script>
     <script src="{{ url_for('static', filename = "employee_site/js/plugins/easyautocomplete/jquery.easy-autocomplete.min.js") }}"></script>
     <script>
     $(document).ready(function() {
         var options = {
-            url: "/internal/inventory/stock-inventory/ajax",
-
+            url: "/inventory/parts/ajax",
             getValue: "part_number",
             requestDelay: 300,
             template: {
                 type: "custom",
                 method: function(value, item) {
-                    if (item.stock_quantity >= 3) {
-                        var display = '<span class="pull-right label label-primary btn-rounded">In stock</span>';
-                    } else if (item.stock_quantity >= 1 && item.stock_quantity < 3) {
-                        var display = '<span class="pull-right label label-warning btn-rounded">Low stock</span>';
-                    } else {
-                        var display = '<span class="pull-right label label-danger btn-rounded">Out of stock</span>';
-                    }
-                    return '<div class="text-left"><a href="/internal/inventory/stock-inventory/' + item.part_number + '/view/">' + item.part_number + display + '</a></div>';
+                  item.stock_invoices = item.invoices.filter(function(invoice) {
+                      return [
+                        'New',
+                        'In Stock - Claimed'
+                      ].indexOf(invoice.status) >= 0;
+                  });
+
+                  var display;
+
+                  if (item.stock_invoices.length >= 3) {
+                      display = '<span class="pull-right label label-green btn-rounded">In stock</span>';
+                  } else if (item.stock_invoices.length >= 1 && item.stock_invoices.length < 3) {
+                      display = '<span class="pull-right label label-warning btn-rounded">Low stock</span>';
+                  } else {
+                      display = '<span class="pull-right label label-danger btn-rounded">Out of stock</span>';
+                  }
+                  return '<div class="text-left"><a href="/inventory/parts/' + item.part_number + '/">' + item.part_number + display + '</a></div>';
                 }
             },
 
@@ -180,5 +229,3 @@
 
     </script>
 {% endblock %}
-
-

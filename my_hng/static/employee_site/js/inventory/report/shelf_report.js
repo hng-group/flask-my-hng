@@ -1,24 +1,22 @@
 $(document).ready(function() {
-    var socket = io('http://' + document.domain + '/socketio');
-
-    socket.on('shelf report data', function(json) {
-        var table_data = JSON.parse(json);
-        shelf_report_table.rows.add(table_data).draw();
+    $(document).on('click', '#get_shelf_report', function(e) {
+      e.preventDefault();
+      shelf_report_table.clear();
+      var shelf = $('#shelf option:selected').val();
+      $.post(window.location.pathname, {shelf: shelf}, function(parts) {
+        shelf_report_table.rows.add(parts).draw();
         swal("Success!", "Get shelf report successfully!", "success");
+      });
     });
 
-    $(document).on('click', '#get_shelf_report', function() {
-        shelf_report_table.clear();
-        socket.emit('shelf report', {shelf: $('#shelf option:selected').val()});
+    $(document).on('click', '#clear_table', function(e) {
+      e.preventDefault();
+      var table_data = [];
+      shelf_report_table.clear();
+      shelf_report_table.rows.add(table_data).draw();
     });
 
-    $(document).on('click', '#clear_table', function() {
-        var table_data = [];
-        shelf_report_table.clear();
-        shelf_report_table.rows.add(table_data).draw();
-    });
-
-    var shelf_report_table = $('#shelf_report_table').DataTable( {
+    var shelf_report_table = $('#shelf_report_table').DataTable({
         "responsive": true,
         "autoFill": true,
         "data": [],
@@ -31,31 +29,37 @@ $(document).ready(function() {
         ],
         "columns": [
             {
-                data: "invoice_number",
+                data: "invoice",
                 responsivePriority: 1,
-                render: function ( data, type, row ) {
-                    return display = '<a href="/internal/inventory/invoices/' + data + '/view/">' + data + '</a>';
+                render: function (invoice, type, row) {
+                    return '<a href="/inventory/invoices/' + invoice.invoice_number+ '/">' + invoice.invoice_number + '</a>';
                 }
             },
 
             {
-                data: "part_number",
+                data: "part",
                 responsivePriority: 2,
-                render: function ( data, type, row ) {
-                    return display = '<a href="/internal/inventory/stock-inventory/' + data + '/view/">' + data + '</a>';
+                render: function (part, type, row) {
+                    return '<a href="/inventory/parts/' + part.part_number + '/">' + part.part_number + '</a>';
                 }
             },
 
             {
-                data: "part_description",
-                responsivePriority: 3
+                data: "part",
+                responsivePriority: 3,
+                render: function (part, type, row) {
+                  return part.description;
+                }
             },
 
 
             {
-                data: "received_date",
+                data: "invoice",
                 className: "text-center",
-                responsivePriority: 4
+                responsivePriority: 4,
+                render: function (invoice, type, row) {
+                  return utils.toUSDate(invoice.received_date);
+                }
             },
 
             {
@@ -65,13 +69,16 @@ $(document).ready(function() {
             },
 
             {
-                data: "part_price",
+                data: "part",
                 className: "text-center",
-                responsivePriority: 6
+                responsivePriority: 6,
+                render: function(part, type, row) {
+                  return part.price;
+                }
             },
 
             {
-                data: "location",
+                data: "shelf_location",
                 className: "text-center",
                 responsivePriority: 7
             },
