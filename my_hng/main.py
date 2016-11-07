@@ -10,10 +10,11 @@ graduated from school. It was a result of my limited knowledge, google and
 stack overflow. I will make sure the source code is well commented.
 """
 
-import flask
 import simplejson
 import json
 import datetime
+import os
+import flask_excel as excel
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -39,8 +40,8 @@ app.jinja_env.globals.update(sql_to_us_date=sql_to_us_date)
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
-# Mysql config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost/my_hng'
+# Mysql config 'mysql+pymysql://root@localhost/my_hng
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # Flask-security config
@@ -49,7 +50,7 @@ app.config['SECURITY_RECOVERABLE'] = True
 # app.config['SECURITY_CONFIRMABLE'] = True
 app.config['SECURITY_CHANGEABLE'] = True
 app.config['SECURITY_PASSWORD_HASH'] = 'pbkdf2_sha512'
-app.config['SECURITY_PASSWORD_SALT'] = '$2a$16$PnnIgfMwkOjGX4SkHqSOPO'
+app.config['SECURITY_PASSWORD_SALT'] = os.environ['SALT']
 app.config['SECURITY_TOKEN_MAX_AGE'] = 10
 app.config['SECURITY_POST_LOGIN_VIEW'] = '/'
 app.config['SECURITY_POST_LOGOUT_VIEW'] = '/login'
@@ -61,7 +62,7 @@ app.config['MAIL_SERVER'] = 'mail.hngappliances.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'no-reply@hngappliances.com'
-app.config['MAIL_PASSWORD'] = '%~?qL63t-EqK'
+app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
 app.config['MAIL_DEFAULT_SENDER'] = 'no-reply@hngappliances.com'
 app.config['MAIL_MAX_EMAILS'] = 30
 
@@ -124,7 +125,7 @@ class InvoiceDetailSchema(ma.ModelSchema):
     class Meta:
         model = InvoiceDetail
 
-    invoice = ma.Nested(InvoiceSchema)
+    invoice = ma.Nested(InvoiceSchema(), exclude=('parts',))
     part = ma.Nested('PartSchema', exclude=('invoices',))
 
 
@@ -132,7 +133,7 @@ class PartSchema(ma.ModelSchema):
     class Meta:
         model = Part
 
-    invoices = ma.Nested(InvoiceDetailSchema, many=True)
+    invoices = ma.Nested(InvoiceDetailSchema(), many=True)
 
 
 role_schema = RoleSchema()
@@ -744,41 +745,38 @@ def invoices():
 @login_required
 @roles_accepted('admin', 'management')
 def new_invoice_excel():
-    try:
-        excel_file = request.get_dict(field_name='invoice_file')
-        samsung_keys = (
-            'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
-            'P/O No', 'Description', 'Tracking No',
-        )
-        # Check for valid Samsung invoice format
-        if all(k in excel_file for k in samsung_keys):
-            invoice_number = excel_file['Delivery No'][0]
-            if Invoice.query.get(invoice_number):
-                flash('This invoice already exists', 'alert-danger')
-                return redirect(url_for('invoices'))
-            invoice = Invoice(invoice_number=invoice_number)
-            for idx, part_number in enumerate(excel_file['Shipped Parts']):
-                qty = int(excel_file['Qty'][idx])
-                purchase_order_number = excel_file['P/O No'][idx]
-                description = excel_file['Description'][idx].strip()
-                price = float(excel_file['Amount'][idx]) / qty
-                part = Part.get_or_create(part_number, db.session)
-                part.description = description
-                part.price = price
-                for _ in range(qty):
-                    invoice_detail = InvoiceDetail(
-                        invoice_number=invoice_number,
-                        purchase_order_number=purchase_order_number,
-                    )
-                    invoice_detail.part = part
-                    invoice.parts.append(invoice_detail)
-            db.session.add(invoice)
-            db.session.commit()
-            flash('Imported excel file successfully', 'alert-success')
-        else:
-            flash('Invalid file, try again', 'alert-danger')
-    except Exception:
-        flash('Something went wrong, please try again', 'alert-danger')
+    excel_file = request.get_dict(field_name='invoice_file')
+    samsung_keys = (
+        'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
+        'P/O No', 'Description', 'Tracking No',
+    )
+    # Check for valid Samsung invoice format
+    if all(k in excel_file for k in samsung_keys):
+        invoice_number = excel_file['Delivery No'][0]
+        if Invoice.query.get(invoice_number):
+            flash('This invoice already exists', 'alert-danger')
+            return redirect(url_for('invoices'))
+        invoice = Invoice(invoice_number=invoice_number)
+        for idx, part_number in enumerate(excel_file['Shipped Parts']):
+            qty = int(excel_file['Qty'][idx])
+            purchase_order_number = excel_file['P/O No'][idx]
+            description = excel_file['Description'][idx].strip()
+            price = float(excel_file['Amount'][idx]) / qty
+            part = Part.get_or_create(part_number, db.session)
+            part.description = description
+            part.price = price
+            for _ in range(qty):
+                invoice_detail = InvoiceDetail(
+                    invoice_number=invoice_number,
+                    purchase_order_number=purchase_order_number,
+                )
+                invoice_detail.part = part
+                invoice.parts.append(invoice_detail)
+        db.session.add(invoice)
+        db.session.commit()
+        flash('Imported excel file successfully', 'alert-success')
+    else:
+        flash('Invalid file, try again', 'alert-danger')
     return redirect(url_for('invoices'))
 
 
