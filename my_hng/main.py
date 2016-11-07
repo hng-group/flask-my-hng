@@ -14,6 +14,7 @@ import simplejson
 import json
 import datetime
 import os
+import flask_excel as excel
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -744,41 +745,38 @@ def invoices():
 @login_required
 @roles_accepted('admin', 'management')
 def new_invoice_excel():
-    try:
-        excel_file = request.get_dict(field_name='invoice_file')
-        samsung_keys = (
-            'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
-            'P/O No', 'Description', 'Tracking No',
-        )
-        # Check for valid Samsung invoice format
-        if all(k in excel_file for k in samsung_keys):
-            invoice_number = excel_file['Delivery No'][0]
-            if Invoice.query.get(invoice_number):
-                flash('This invoice already exists', 'alert-danger')
-                return redirect(url_for('invoices'))
-            invoice = Invoice(invoice_number=invoice_number)
-            for idx, part_number in enumerate(excel_file['Shipped Parts']):
-                qty = int(excel_file['Qty'][idx])
-                purchase_order_number = excel_file['P/O No'][idx]
-                description = excel_file['Description'][idx].strip()
-                price = float(excel_file['Amount'][idx]) / qty
-                part = Part.get_or_create(part_number, db.session)
-                part.description = description
-                part.price = price
-                for _ in range(qty):
-                    invoice_detail = InvoiceDetail(
-                        invoice_number=invoice_number,
-                        purchase_order_number=purchase_order_number,
-                    )
-                    invoice_detail.part = part
-                    invoice.parts.append(invoice_detail)
-            db.session.add(invoice)
-            db.session.commit()
-            flash('Imported excel file successfully', 'alert-success')
-        else:
-            flash('Invalid file, try again', 'alert-danger')
-    except Exception:
-        flash('Something went wrong, please try again', 'alert-danger')
+    excel_file = request.get_dict(field_name='invoice_file')
+    samsung_keys = (
+        'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
+        'P/O No', 'Description', 'Tracking No',
+    )
+    # Check for valid Samsung invoice format
+    if all(k in excel_file for k in samsung_keys):
+        invoice_number = excel_file['Delivery No'][0]
+        if Invoice.query.get(invoice_number):
+            flash('This invoice already exists', 'alert-danger')
+            return redirect(url_for('invoices'))
+        invoice = Invoice(invoice_number=invoice_number)
+        for idx, part_number in enumerate(excel_file['Shipped Parts']):
+            qty = int(excel_file['Qty'][idx])
+            purchase_order_number = excel_file['P/O No'][idx]
+            description = excel_file['Description'][idx].strip()
+            price = float(excel_file['Amount'][idx]) / qty
+            part = Part.get_or_create(part_number, db.session)
+            part.description = description
+            part.price = price
+            for _ in range(qty):
+                invoice_detail = InvoiceDetail(
+                    invoice_number=invoice_number,
+                    purchase_order_number=purchase_order_number,
+                )
+                invoice_detail.part = part
+                invoice.parts.append(invoice_detail)
+        db.session.add(invoice)
+        db.session.commit()
+        flash('Imported excel file successfully', 'alert-success')
+    else:
+        flash('Invalid file, try again', 'alert-danger')
     return redirect(url_for('invoices'))
 
 

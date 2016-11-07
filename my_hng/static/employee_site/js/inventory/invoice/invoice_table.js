@@ -59,7 +59,7 @@ $(document).ready(function() {
         $(".paginate_button > a").blur();
     });
 
-    setInterval(function(){
-      invoice_table.ajax.reload(null, false);
-    }, 15000);
+    // setInterval(function(){
+    //   invoice_table.ajax.reload(null, false);
+    // }, 15000);
 });
