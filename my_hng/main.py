@@ -125,7 +125,7 @@ class InvoiceDetailSchema(ma.ModelSchema):
     class Meta:
         model = InvoiceDetail
 
-    invoice = ma.Nested(InvoiceSchema)
+    invoice = ma.Nested(InvoiceSchema(), exclude=('parts',))
     part = ma.Nested('PartSchema', exclude=('invoices',))
 
 
@@ -133,7 +133,7 @@ class PartSchema(ma.ModelSchema):
     class Meta:
         model = Part
 
-    invoices = ma.Nested(InvoiceDetailSchema, many=True)
+    invoices = ma.Nested(InvoiceDetailSchema(), many=True)
 
 
 role_schema = RoleSchema()
