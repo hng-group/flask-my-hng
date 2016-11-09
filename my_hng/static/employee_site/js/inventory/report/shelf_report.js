@@ -40,7 +40,7 @@ $(document).ready(function() {
                 data: "part",
                 responsivePriority: 2,
                 render: function (part, type, row) {
-                    return '<a href="/inventory/parts/' + part.part_number + '/">' + part.part_number + '</a>';
+                  return part ? '<a href="/inventory/parts/' + part.part_number + '/">' + part.part_number + '</a>' : '';
                 }
             },
 
@@ -65,7 +65,10 @@ $(document).ready(function() {
             {
                 data: "claimed_date",
                 className: "text-center",
-                responsivePriority: 5
+                responsivePriority: 5,
+                render: function (date, type, row) {
+                  return utils.toUSDate(date);
+                }
             },
 
             {

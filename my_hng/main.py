@@ -963,15 +963,15 @@ def view_part(part_number):
 @roles_accepted('admin', 'management')
 def update_part(part_number):
     part = Part.query.get_or_404(part_number)
-    try:
-        part.description = request.form['part_description']
-        part.machine_type = request.form['machine_type']
-        part.price = float(request.form['part_price'])
-        part.image_url = request.form['image_url']
-        db.session.commit()
-        flash('Part detail updated', 'alert-success')
-    except:
-        flash('Failed, try again', 'alert-danger')
+    part.description = request.form['part_description']
+    part.machine_type = request.form['machine_type']
+    part.price = (
+        float(request.form['part_price']) if request.form['part_price']
+        else None
+    )
+    part.image_url = request.form['image_url']
+    db.session.commit()
+    flash('Part detail updated', 'alert-success')
     return redirect(url_for('view_part', part_number=part_number))
 
 
@@ -1015,7 +1015,10 @@ def inventory_shelf_report():
     query = db.session.query(
         InvoiceDetail.shelf_location.distinct().label('shelf_location')
     )
-    all_shelves = [i.shelf_location for i in query.all() if i.shelf_location]
+    all_shelves = sorted(
+        [i.shelf_location for i in query.all() if i.shelf_location]
+    )
+    print(all_shelves)
     return render_template(
         'employee_site/inventory/shelf_report.html',
         category=category,
