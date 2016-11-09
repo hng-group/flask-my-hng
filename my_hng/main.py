@@ -784,8 +784,29 @@ def new_invoice_excel():
 @app.route('/inventory/invoices/ajax')
 @login_required
 def invoices_ajax():
-    all_invoices = invoices_schema.dump(Invoice.query.all()).data
-    return jsonify(all_invoices)
+    response = {}
+    response['draw'] = int(request.args.get('draw', 0))
+    per_page = int(request.args.get('length', 30))
+    try:
+        page = int(request.args['start']) / int(request.args['length']) + 1
+    except:
+        page = 1
+    search = u'{}{}{}'.format('%', request.args.get('search[value]', ''), '%')
+    response['recordsTotal'] = Invoice.query.count()
+    if len(search) > 3:
+        pagination_obj = Invoice.query.filter(
+            (Invoice.invoice_number.like(search)) |
+            (Invoice.received_date.like(search))
+        ).order_by(
+            Invoice.received_date.desc(), Invoice.invoice_number.desc()
+        ).paginate(page=page, per_page=per_page)
+    else:
+        pagination_obj = Invoice.query.order_by(
+            Invoice.received_date.desc(), Invoice.invoice_number.desc()
+        ).paginate(page=page, per_page=per_page)
+    response['invoices'] = invoices_schema.dump(pagination_obj.items).data
+    response['recordsFiltered'] = pagination_obj.total
+    return jsonify(response)
 
 
 @socketio.on('import invoice', namespace='/socketio')

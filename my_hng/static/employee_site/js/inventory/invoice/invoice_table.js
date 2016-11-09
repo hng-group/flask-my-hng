@@ -1,13 +1,15 @@
 $(document).ready(function() {
     var invoice_table = $('#invoice_table').DataTable( {
-        "responsive": true,
-        "ajax": {
-            url: '/inventory/invoices/ajax',
-            dataSrc: ''
+        'responsive': true,
+        'serverSide': true,
+        'processing': true,
+        'ajax': {
+            'url': '/inventory/invoices/ajax',
+            'dataSrc': 'invoices'
         },
         "deferRender": true,
         "stateSave": true,
-        "order": [[ 1, 'desc' ]],
+        'ordering': false,
         "columns": [
             {
                 data: "invoice_number",
