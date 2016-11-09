@@ -1,20 +1,23 @@
 $(document).ready(function() {
 
     var stock_inv = $('#stock_inv').DataTable( {
-        "responsive": true,
-        "ajax": {
-            url: '/inventory/parts/ajax',
-            dataSrc: ''
+        'responsive': true,
+        'serverSide': true,
+        'processing': true,
+        'ajax': {
+            'url': '/inventory/parts/ajax',
+            'dataSrc': 'parts',
         },
-        "deferRender": true,
-        "stateSave": true,
-        "columns": [
+        'deferRender': true,
+        'stateSave': true,
+        'ordering': false,
+        'columns': [
             {
-                data: "part_number",
-                responsivePriority: 1,
-                render: function ( data, type, row ) {
-                    return '<a href="/inventory/parts/' + data + '/">' + data + '</a>';
-                }
+              data: "part_number",
+              responsivePriority: 1,
+              render: function ( data, type, row ) {
+                return '<a href="/inventory/parts/' + data + '/">' + data + '</a>';
+              }
             },
 
             {

@@ -51,9 +51,4 @@ $(document).ready(function() {
     $(window).scroll(function(){
         $(".paginate_button > a").blur();
     });
-    var socket = io.connect('http://' + document.domain + ':' + location.port + '/test/socketio');
-    socket.on('my response', function() {
-        invoice_table.ajax.reload( null, false );
-    });
-
 });

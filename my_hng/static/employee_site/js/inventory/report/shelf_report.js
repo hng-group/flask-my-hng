@@ -48,7 +48,7 @@ $(document).ready(function() {
                 data: "part",
                 responsivePriority: 3,
                 render: function (part, type, row) {
-                  return part.description;
+                  return part ? part.description : '';
                 }
             },
 
@@ -73,7 +73,7 @@ $(document).ready(function() {
                 className: "text-center",
                 responsivePriority: 6,
                 render: function(part, type, row) {
-                  return part.price;
+                  return part ? part.price : '';
                 }
             },
 

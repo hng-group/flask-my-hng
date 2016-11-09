@@ -14,7 +14,6 @@ import simplejson
 import json
 import datetime
 import os
-import flask_excel as excel
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -354,6 +353,7 @@ def internal_userbase_viewuser(user_id):
 @login_required
 @roles_required('admin')
 def client_list():
+    import flask_excel as excel
     page = 'Client List'
     if request.method == "POST":
         try:
@@ -745,6 +745,7 @@ def invoices():
 @login_required
 @roles_accepted('admin', 'management')
 def new_invoice_excel():
+    import flask_excel as excel
     excel_file = request.get_dict(field_name='invoice_file')
     samsung_keys = (
         'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
@@ -920,11 +921,26 @@ def get_stock():
 
 @app.route('/inventory/parts/ajax')
 @login_required
-def internal_stock_inventory_ajax():
-    stock_parts = parts_schema.dump(
-        Part.query.all()
-    ).data
-    return jsonify(stock_parts)
+def get_stock_ajax():
+    response = {}
+    response['draw'] = int(request.args.get('draw', 0))
+    per_page = int(request.args.get('length', 30))
+    try:
+        page = int(request.args['start']) / int(request.args['length']) + 1
+    except:
+        page = 1
+    search = u'{}{}{}'.format('%', request.args.get('search[value]', ''), '%')
+    response['recordsTotal'] = Part.query.count()
+    if len(search) > 3:
+        pagination_obj = Part.query.filter(
+            (Part.part_number.like(search)) | (Part.description.like(search)) |
+            (Part.machine_type.like(search)) | (Part.price.like(search))
+        ).paginate(page=page, per_page=per_page)
+    else:
+        pagination_obj = Part.query.paginate(page=page, per_page=per_page)
+    response['parts'] = parts_schema.dump(pagination_obj.items).data
+    response['recordsFiltered'] = pagination_obj.total
+    return jsonify(response)
 
 
 @app.route('/inventory/parts/<path:part_number>/')
