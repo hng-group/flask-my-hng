@@ -23,6 +23,10 @@ from models import (
     db, Invoice, Part, InvoiceDetail, Role, User,
     Exam, Question, Answer, UserExam, Client, Article,
 )
+from serializers import (
+    users_schema, roles_schema, clients_schema, articles_schema,
+    invoices_schema, parts_schema, part_schema, invoices_detail_schema
+)
 from flask_socketio import SocketIO, emit
 from flask_security import (
     Security, SQLAlchemyUserDatastore,
@@ -30,7 +34,6 @@ from flask_security import (
 )
 from flask_security.utils import encrypt_password
 from flask_mail import Mail, Message
-from flask_marshmallow import Marshmallow
 from utils import sql_to_us_date, us_to_sql_date
 
 # App config
@@ -68,95 +71,10 @@ app.config['MAIL_MAX_EMAILS'] = 30
 
 mail = Mail(app)  # Flask-Mail init
 db.init_app(app)  # Flask-SQLAlchemy init
-ma = Marshmallow(app)  # Flask-Marshmallow init
 socketio = SocketIO(app)  # Flask-Socketio init
 # Flask-Security init
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
-
-
-class RoleSchema(ma.ModelSchema):
-    class Meta:
-        model = Role
-
-
-class UserSchema(ma.ModelSchema):
-    class Meta:
-        model = User
-
-
-class ExamSchema(ma.ModelSchema):
-    class Meta:
-        model = Exam
-
-
-class QuestionSchema(ma.ModelSchema):
-    class Meta:
-        model = Question
-
-
-class AnswerSchema(ma.ModelSchema):
-    class Meta:
-        model = Answer
-
-
-class UserExamSchema(ma.ModelSchema):
-    class Meta:
-        model = UserExam
-
-
-class ClientSchema(ma.ModelSchema):
-    class Meta:
-        model = Client
-
-
-class ArticleSchema(ma.ModelSchema):
-    class Meta:
-        model = Article
-
-
-class InvoiceSchema(ma.ModelSchema):
-    class Meta:
-        model = Invoice
-
-
-class InvoiceDetailSchema(ma.ModelSchema):
-    class Meta:
-        model = InvoiceDetail
-
-    invoice = ma.Nested(InvoiceSchema(), exclude=('parts',))
-    part = ma.Nested('PartSchema', exclude=('invoices',))
-
-
-class PartSchema(ma.ModelSchema):
-    class Meta:
-        model = Part
-
-    invoices = ma.Nested(InvoiceDetailSchema(), many=True)
-
-
-role_schema = RoleSchema()
-roles_schema = RoleSchema(many=True)
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-exam_schema = ExamSchema()
-exams_schema = ExamSchema(many=True)
-question_schema = QuestionSchema()
-questions_schema = QuestionSchema(many=True)
-answer_schema = AnswerSchema()
-answers_schema = AnswerSchema(many=True)
-user_exam_schema = UserExamSchema()
-users_exams_schema = UserExamSchema(many=True)
-client_schema = ClientSchema()
-clients_schema = ClientSchema(many=True)
-article_schema = ArticleSchema()
-articles_schema = ArticleSchema(many=True)
-invoice_schema = InvoiceSchema()
-invoices_schema = InvoiceSchema(many=True)
-part_schema = PartSchema()
-parts_schema = PartSchema(many=True)
-invoice_detail_schema = InvoiceDetailSchema()
-invoices_detail_schema = InvoiceDetailSchema(many=True)
 
 
 @app.errorhandler(500)
