@@ -14,6 +14,7 @@ import simplejson
 import json
 import datetime
 import os
+import flask_excel as excel
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -271,7 +272,6 @@ def internal_userbase_viewuser(user_id):
 @login_required
 @roles_required('admin')
 def client_list():
-    import flask_excel as excel
     page = 'Client List'
     if request.method == "POST":
         try:
