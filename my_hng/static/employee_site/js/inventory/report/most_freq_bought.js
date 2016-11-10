@@ -3,8 +3,8 @@ $(document).ready(function() {
     var most_freq_bought = $('#most_freq_bought').DataTable( {
         "responsive": true,
         "ajax": {
-            url: '/inventory/report/ajax/top-50-part',
-            dataSrc: ''
+            url: '/inventory/report/ajax?type=parts',
+            dataSrc: 'parts'
         },
         "deferRender": true,
         "order": [[ 3, 'desc' ]],
@@ -45,10 +45,14 @@ $(document).ready(function() {
                 className: "stock-status",
                 render: function (invoices, type, row) {
                   var stock_invoices = invoices.filter(function(invoice) {
-                      return [
-                        'New',
-                        'In Stock - Claimed'
-                      ].indexOf(invoice.status) >= 0;
+                    return invoice.shelf_location && [
+                      'New',
+                      'In Stock - Claimed'
+                    ].indexOf(invoice.status) >= 0 && [
+                      'N/A',
+                      'N/a',
+                      'n/a',
+                    ].indexOf(invoice.shelf_location) < 0;
                   });
                   var display;
                   if (stock_invoices.length >= 3) {

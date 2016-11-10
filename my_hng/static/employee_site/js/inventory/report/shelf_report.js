@@ -2,8 +2,9 @@ $(document).ready(function() {
     $(document).on('click', '#get_shelf_report', function(e) {
       e.preventDefault();
       shelf_report_table.clear();
-      var shelf = $('#shelf option:selected').val();
+      var shelf = $('#shelf option:selected').text();
       $.post(window.location.pathname, {shelf: shelf}, function(parts) {
+        console.log(shelf);
         shelf_report_table.rows.add(parts).draw();
         swal("Success!", "Get shelf report successfully!", "success");
       });
@@ -40,7 +41,7 @@ $(document).ready(function() {
                 data: "part",
                 responsivePriority: 2,
                 render: function (part, type, row) {
-                    return '<a href="/inventory/parts/' + part.part_number + '/">' + part.part_number + '</a>';
+                  return part ? '<a href="/inventory/parts/' + part.part_number + '/">' + part.part_number + '</a>' : '';
                 }
             },
 
@@ -48,7 +49,7 @@ $(document).ready(function() {
                 data: "part",
                 responsivePriority: 3,
                 render: function (part, type, row) {
-                  return part.description;
+                  return part ? part.description : '';
                 }
             },
 
@@ -65,7 +66,10 @@ $(document).ready(function() {
             {
                 data: "claimed_date",
                 className: "text-center",
-                responsivePriority: 5
+                responsivePriority: 5,
+                render: function (date, type, row) {
+                  return utils.toUSDate(date);
+                }
             },
 
             {
@@ -73,7 +77,7 @@ $(document).ready(function() {
                 className: "text-center",
                 responsivePriority: 6,
                 render: function(part, type, row) {
-                  return part.price;
+                  return part ? part.price : '';
                 }
             },
 

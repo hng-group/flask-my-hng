@@ -14,7 +14,7 @@ import simplejson
 import json
 import datetime
 import os
-import flask_excel as excel
+import flask_excel as excel # noqa
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -24,6 +24,10 @@ from models import (
     db, Invoice, Part, InvoiceDetail, Role, User,
     Exam, Question, Answer, UserExam, Client, Article,
 )
+from serializers import (
+    users_schema, roles_schema, clients_schema, articles_schema,
+    invoices_schema, parts_schema, part_schema, invoices_detail_schema
+)
 from flask_socketio import SocketIO, emit
 from flask_security import (
     Security, SQLAlchemyUserDatastore,
@@ -31,13 +35,12 @@ from flask_security import (
 )
 from flask_security.utils import encrypt_password
 from flask_mail import Mail, Message
-from flask_marshmallow import Marshmallow
 from utils import sql_to_us_date, us_to_sql_date
 
 # App config
 app = Flask(__name__)
 app.jinja_env.globals.update(sql_to_us_date=sql_to_us_date)
-app.config['SECRET_KEY'] = 'super-secret'
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 # Mysql config 'mysql+pymysql://root@localhost/my_hng
@@ -69,95 +72,10 @@ app.config['MAIL_MAX_EMAILS'] = 30
 
 mail = Mail(app)  # Flask-Mail init
 db.init_app(app)  # Flask-SQLAlchemy init
-ma = Marshmallow(app)  # Flask-Marshmallow init
 socketio = SocketIO(app)  # Flask-Socketio init
 # Flask-Security init
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
-
-
-class RoleSchema(ma.ModelSchema):
-    class Meta:
-        model = Role
-
-
-class UserSchema(ma.ModelSchema):
-    class Meta:
-        model = User
-
-
-class ExamSchema(ma.ModelSchema):
-    class Meta:
-        model = Exam
-
-
-class QuestionSchema(ma.ModelSchema):
-    class Meta:
-        model = Question
-
-
-class AnswerSchema(ma.ModelSchema):
-    class Meta:
-        model = Answer
-
-
-class UserExamSchema(ma.ModelSchema):
-    class Meta:
-        model = UserExam
-
-
-class ClientSchema(ma.ModelSchema):
-    class Meta:
-        model = Client
-
-
-class ArticleSchema(ma.ModelSchema):
-    class Meta:
-        model = Article
-
-
-class InvoiceSchema(ma.ModelSchema):
-    class Meta:
-        model = Invoice
-
-
-class InvoiceDetailSchema(ma.ModelSchema):
-    class Meta:
-        model = InvoiceDetail
-
-    invoice = ma.Nested(InvoiceSchema(), exclude=('parts',))
-    part = ma.Nested('PartSchema', exclude=('invoices',))
-
-
-class PartSchema(ma.ModelSchema):
-    class Meta:
-        model = Part
-
-    invoices = ma.Nested(InvoiceDetailSchema(), many=True)
-
-
-role_schema = RoleSchema()
-roles_schema = RoleSchema(many=True)
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-exam_schema = ExamSchema()
-exams_schema = ExamSchema(many=True)
-question_schema = QuestionSchema()
-questions_schema = QuestionSchema(many=True)
-answer_schema = AnswerSchema()
-answers_schema = AnswerSchema(many=True)
-user_exam_schema = UserExamSchema()
-users_exams_schema = UserExamSchema(many=True)
-client_schema = ClientSchema()
-clients_schema = ClientSchema(many=True)
-article_schema = ArticleSchema()
-articles_schema = ArticleSchema(many=True)
-invoice_schema = InvoiceSchema()
-invoices_schema = InvoiceSchema(many=True)
-part_schema = PartSchema()
-parts_schema = PartSchema(many=True)
-invoice_detail_schema = InvoiceDetailSchema()
-invoices_detail_schema = InvoiceDetailSchema(many=True)
 
 
 @app.errorhandler(500)
@@ -474,7 +392,11 @@ def client_newsletter():
                     Client.email != '',
                     Client.is_subscribed == "T").group_by(Client.email).all()
                 for client in clients:
-                    unsubscription_html = '<p style="text-align: center; "><font color="#9c9c94"><a href="http://myhng.net/client/email-setting/%s">Change your email setting</a></font></p>' % (client.email)
+                    unsubscription_html = """
+                        <p style="text-align: center; "><font color="#9c9c94">
+                        <a href="http://myhng.net/client/email-setting/%s">
+                        Change your email setting</a></font></p>
+                        """ % (client.email)
                     msg = Message(
                         sender=(
                             'HNG Appliances',
@@ -783,8 +705,29 @@ def new_invoice_excel():
 @app.route('/inventory/invoices/ajax')
 @login_required
 def invoices_ajax():
-    all_invoices = invoices_schema.dump(Invoice.query.all()).data
-    return jsonify(all_invoices)
+    response = {}
+    response['draw'] = int(request.args.get('draw', 0))
+    per_page = int(request.args.get('length', 30))
+    try:
+        page = int(request.args['start']) / int(request.args['length']) + 1
+    except:
+        page = 1
+    search = u'{}{}{}'.format('%', request.args.get('search[value]', ''), '%')
+    response['recordsTotal'] = Invoice.query.count()
+    if len(search) > 3:
+        pagination_obj = Invoice.query.filter(
+            (Invoice.invoice_number.like(search)) |
+            (Invoice.received_date.like(search))
+        ).order_by(
+            Invoice.received_date.desc(), Invoice.invoice_number.desc()
+        ).paginate(page=page, per_page=per_page)
+    else:
+        pagination_obj = Invoice.query.order_by(
+            Invoice.received_date.desc(), Invoice.invoice_number.desc()
+        ).paginate(page=page, per_page=per_page)
+    response['invoices'] = invoices_schema.dump(pagination_obj.items).data
+    response['recordsFiltered'] = pagination_obj.total
+    return jsonify(response)
 
 
 @socketio.on('import invoice', namespace='/socketio')
@@ -920,11 +863,26 @@ def get_stock():
 
 @app.route('/inventory/parts/ajax')
 @login_required
-def internal_stock_inventory_ajax():
-    stock_parts = parts_schema.dump(
-        Part.query.all()
-    ).data
-    return jsonify(stock_parts)
+def get_stock_ajax():
+    response = {}
+    response['draw'] = int(request.args.get('draw', 0))
+    per_page = int(request.args.get('length', 30))
+    try:
+        page = int(request.args['start']) / int(request.args['length']) + 1
+    except:
+        page = 1
+    search = u'{}{}{}'.format('%', request.args.get('search[value]', ''), '%')
+    response['recordsTotal'] = Part.query.count()
+    if len(search) > 3:
+        pagination_obj = Part.query.filter(
+            (Part.part_number.like(search)) | (Part.description.like(search)) |
+            (Part.machine_type.like(search)) | (Part.price.like(search))
+        ).paginate(page=page, per_page=per_page)
+    else:
+        pagination_obj = Part.query.paginate(page=page, per_page=per_page)
+    response['parts'] = parts_schema.dump(pagination_obj.items).data
+    response['recordsFiltered'] = pagination_obj.total
+    return jsonify(response)
 
 
 @app.route('/inventory/parts/<path:part_number>/')
@@ -947,15 +905,15 @@ def view_part(part_number):
 @roles_accepted('admin', 'management')
 def update_part(part_number):
     part = Part.query.get_or_404(part_number)
-    try:
-        part.description = request.form['part_description']
-        part.machine_type = request.form['machine_type']
-        part.price = float(request.form['part_price'])
-        part.image_url = request.form['image_url']
-        db.session.commit()
-        flash('Part detail updated', 'alert-success')
-    except:
-        flash('Failed, try again', 'alert-danger')
+    part.description = request.form['part_description']
+    part.machine_type = request.form['machine_type']
+    part.price = (
+        float(request.form['part_price']) if request.form['part_price']
+        else None
+    )
+    part.image_url = request.form['image_url']
+    db.session.commit()
+    flash('Part detail updated', 'alert-success')
     return redirect(url_for('view_part', part_number=part_number))
 
 
@@ -979,15 +937,48 @@ def inventory_report():
     )
 
 
-@app.route('/inventory/report/ajax/top-50-part')
+@app.route('/inventory/report/ajax')
 @login_required
-def inventory_top50part():
-    top_50_parts = sorted(
-        Part.query.all(),
-        key=lambda p: len(p.invoices),
-        reverse=True
-    )[:50]
-    return jsonify(parts_schema.dump(top_50_parts).data)
+def inventory_stats():
+    from decimal import Decimal
+    all_parts = Part.query.all()
+    if request.args['type'] == 'parts':
+        res = {}
+        res['parts'] = parts_schema.dump(sorted(
+            all_parts,
+            key=lambda p: len(p.invoices),
+            reverse=True
+        )[:50]).data
+    elif request.args['type'] == 'stat':
+        res = {
+            'cur_total_val': Decimal('0.00'),
+            'cur_unclaimed_val': Decimal('0.00'),
+            'cur_claimed_val': Decimal('0.00'),
+        }
+        for part in all_parts:
+            if part.price:
+                total_qty = len(
+                    [i for i in part.invoices if (
+                        i.status in ('New', 'In Stock - Claimed') and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                unclaimed_qty = len(
+                    [i for i in part.invoices if (
+                        i.status == 'New' and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                claimed_qty = len(
+                    [i for i in part.invoices if (
+                        i.status == 'In Stock - Claimed' and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                res['cur_total_val'] += total_qty * part.price
+                res['cur_unclaimed_val'] += unclaimed_qty * part.price
+                res['cur_claimed_val'] += claimed_qty * part.price
+    return jsonify(res)
 
 
 @app.route('/inventory/shelf/')
@@ -999,7 +990,9 @@ def inventory_shelf_report():
     query = db.session.query(
         InvoiceDetail.shelf_location.distinct().label('shelf_location')
     )
-    all_shelves = [i.shelf_location for i in query.all() if i.shelf_location]
+    all_shelves = sorted(
+        [i.shelf_location for i in query.all() if i.shelf_location]
+    )
     return render_template(
         'employee_site/inventory/shelf_report.html',
         category=category,
@@ -1011,7 +1004,7 @@ def inventory_shelf_report():
 @app.route('/inventory/shelf/', methods=['POST'])
 @login_required
 @roles_accepted('admin', 'management')
-def inventory_get_shelf():
+def shelf_report():
     shelf = request.form['shelf']
     invoices = InvoiceDetail.query.filter(
         InvoiceDetail.shelf_location == shelf,
@@ -1042,4 +1035,4 @@ def test_ajax():
         return render_template('employee_site/500.html', error=e)
 
 if __name__ == '__main__':
-    socketio.run(app, host='localhost', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)

@@ -190,17 +190,24 @@
     <script>
     $(document).ready(function() {
         var options = {
-            url: "/inventory/parts/ajax",
+            url: function(phrase) {
+              return "/inventory/parts/ajax?search[value]=" + phrase;
+            },
+            listLocation: 'parts',
             getValue: "part_number",
             requestDelay: 300,
             template: {
                 type: "custom",
                 method: function(value, item) {
                   item.stock_invoices = item.invoices.filter(function(invoice) {
-                      return [
-                        'New',
-                        'In Stock - Claimed'
-                      ].indexOf(invoice.status) >= 0;
+                    return invoice.shelf_location && [
+                      'New',
+                      'In Stock - Claimed'
+                    ].indexOf(invoice.status) >= 0 && [
+                      'N/A',
+                      'N/a',
+                      'n/a',
+                    ].indexOf(invoice.shelf_location) < 0;
                   });
 
                   var display;
@@ -215,11 +222,7 @@
                   return '<div class="text-left"><a href="/inventory/parts/' + item.part_number + '/">' + item.part_number + display + '</a></div>';
                 }
             },
-
             list: {
-                match: {
-                    enabled: true
-                },
                 maxNumberOfElements: 10
             },
         };
