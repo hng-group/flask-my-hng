@@ -14,7 +14,7 @@ import simplejson
 import json
 import datetime
 import os
-import flask_excel as excel
+import flask_excel as excel # noqa
 from random import shuffle
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -392,7 +392,11 @@ def client_newsletter():
                     Client.email != '',
                     Client.is_subscribed == "T").group_by(Client.email).all()
                 for client in clients:
-                    unsubscription_html = '<p style="text-align: center; "><font color="#9c9c94"><a href="http://myhng.net/client/email-setting/%s">Change your email setting</a></font></p>' % (client.email)
+                    unsubscription_html = """
+                        <p style="text-align: center; "><font color="#9c9c94">
+                        <a href="http://myhng.net/client/email-setting/%s">
+                        Change your email setting</a></font></p>
+                        """ % (client.email)
                     msg = Message(
                         sender=(
                             'HNG Appliances',
@@ -663,7 +667,6 @@ def invoices():
 @login_required
 @roles_accepted('admin', 'management')
 def new_invoice_excel():
-    import flask_excel as excel
     excel_file = request.get_dict(field_name='invoice_file')
     samsung_keys = (
         'Shipped Parts', 'Qty', 'Amount', 'Delivery No',
@@ -990,7 +993,6 @@ def inventory_shelf_report():
     all_shelves = sorted(
         [i.shelf_location for i in query.all() if i.shelf_location]
     )
-    print(all_shelves)
     return render_template(
         'employee_site/inventory/shelf_report.html',
         category=category,
@@ -1004,7 +1006,6 @@ def inventory_shelf_report():
 @roles_accepted('admin', 'management')
 def shelf_report():
     shelf = request.form['shelf']
-    print(shelf)
     invoices = InvoiceDetail.query.filter(
         InvoiceDetail.shelf_location == shelf,
     ).filter(
