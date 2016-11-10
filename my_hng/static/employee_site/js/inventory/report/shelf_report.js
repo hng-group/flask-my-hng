@@ -2,8 +2,9 @@ $(document).ready(function() {
     $(document).on('click', '#get_shelf_report', function(e) {
       e.preventDefault();
       shelf_report_table.clear();
-      var shelf = $('#shelf option:selected').val();
+      var shelf = $('#shelf option:selected').text();
       $.post(window.location.pathname, {shelf: shelf}, function(parts) {
+        console.log(shelf);
         shelf_report_table.rows.add(parts).draw();
         swal("Success!", "Get shelf report successfully!", "success");
       });

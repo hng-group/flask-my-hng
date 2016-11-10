@@ -44,9 +44,13 @@ $(document).ready(function() {
                 render: function (invoices, type, part) {
                   var display;
                   var claimable = invoices.filter(function(invoice) {
-                      return [
+                      return invoice.shelf_location && [
                         'New',
-                      ].indexOf(invoice.status) >= 0;
+                      ].indexOf(invoice.status) >= 0 && [
+                        'N/A',
+                        'N/a',
+                        'n/a',
+                      ].indexOf(invoice.shelf_location) < 0;
                   });
                   if (claimable.length >= 1) {
                     display = '<span class="fa fa-check"></span>';
@@ -62,10 +66,14 @@ $(document).ready(function() {
                 className: "stock-quantity",
                 render: function(data, type, part) {
                   var stock_invoices = part.invoices.filter(function(invoice) {
-                      return [
+                      return invoice.shelf_location && [
                         'New',
                         'In Stock - Claimed'
-                      ].indexOf(invoice.status) >= 0;
+                      ].indexOf(invoice.status) >= 0 && [
+                        'N/A',
+                        'N/a',
+                        'n/a',
+                      ].indexOf(invoice.shelf_location) < 0;
                   });
                   return stock_invoices.length;
                 }
@@ -76,10 +84,14 @@ $(document).ready(function() {
               className: "stock-status",
               render: function (invoices, type, row) {
                 var stock_invoices = invoices.filter(function(invoice) {
-                    return [
-                      'New',
-                      'In Stock - Claimed'
-                    ].indexOf(invoice.status) >= 0;
+                  return invoice.shelf_location && [
+                    'New',
+                    'In Stock - Claimed'
+                  ].indexOf(invoice.status) >= 0 && [
+                    'N/A',
+                    'N/a',
+                    'n/a',
+                  ].indexOf(invoice.shelf_location) < 0;
                 });
                 var display;
                 if (stock_invoices.length >= 3) {

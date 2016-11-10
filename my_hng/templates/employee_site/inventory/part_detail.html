@@ -200,10 +200,14 @@
                 type: "custom",
                 method: function(value, item) {
                   item.stock_invoices = item.invoices.filter(function(invoice) {
-                      return [
-                        'New',
-                        'In Stock - Claimed'
-                      ].indexOf(invoice.status) >= 0;
+                    return invoice.shelf_location && [
+                      'New',
+                      'In Stock - Claimed'
+                    ].indexOf(invoice.status) >= 0 && [
+                      'N/A',
+                      'N/a',
+                      'n/a',
+                    ].indexOf(invoice.shelf_location) < 0;
                   });
 
                   var display;

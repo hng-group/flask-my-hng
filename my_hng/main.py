@@ -934,15 +934,48 @@ def inventory_report():
     )
 
 
-@app.route('/inventory/report/ajax/top-50-part')
+@app.route('/inventory/report/ajax')
 @login_required
-def inventory_top50part():
-    top_50_parts = sorted(
-        Part.query.all(),
-        key=lambda p: len(p.invoices),
-        reverse=True
-    )[:50]
-    return jsonify(parts_schema.dump(top_50_parts).data)
+def inventory_stats():
+    from decimal import Decimal
+    all_parts = Part.query.all()
+    if request.args['type'] == 'parts':
+        res = {}
+        res['parts'] = parts_schema.dump(sorted(
+            all_parts,
+            key=lambda p: len(p.invoices),
+            reverse=True
+        )[:50]).data
+    elif request.args['type'] == 'stat':
+        res = {
+            'cur_total_val': Decimal('0.00'),
+            'cur_unclaimed_val': Decimal('0.00'),
+            'cur_claimed_val': Decimal('0.00'),
+        }
+        for part in all_parts:
+            if part.price:
+                total_qty = len(
+                    [i for i in part.invoices if (
+                        i.status in ('New', 'In Stock - Claimed') and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                unclaimed_qty = len(
+                    [i for i in part.invoices if (
+                        i.status == 'New' and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                claimed_qty = len(
+                    [i for i in part.invoices if (
+                        i.status == 'In Stock - Claimed' and
+                        i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
+                    )]
+                )
+                res['cur_total_val'] += total_qty * part.price
+                res['cur_unclaimed_val'] += unclaimed_qty * part.price
+                res['cur_claimed_val'] += claimed_qty * part.price
+    return jsonify(res)
 
 
 @app.route('/inventory/shelf/')
@@ -969,8 +1002,9 @@ def inventory_shelf_report():
 @app.route('/inventory/shelf/', methods=['POST'])
 @login_required
 @roles_accepted('admin', 'management')
-def inventory_get_shelf():
+def shelf_report():
     shelf = request.form['shelf']
+    print(shelf)
     invoices = InvoiceDetail.query.filter(
         InvoiceDetail.shelf_location == shelf,
     ).filter(
@@ -1000,4 +1034,4 @@ def test_ajax():
         return render_template('employee_site/500.html', error=e)
 
 if __name__ == '__main__':
-    socketio.run(app, host='localhost', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)
