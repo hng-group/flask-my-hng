@@ -40,7 +40,7 @@ from utils import sql_to_us_date, us_to_sql_date
 # App config
 app = Flask(__name__)
 app.jinja_env.globals.update(sql_to_us_date=sql_to_us_date)
-app.config['SECRET_KEY'] = 'super-secret'
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 # Mysql config 'mysql+pymysql://root@localhost/my_hng
