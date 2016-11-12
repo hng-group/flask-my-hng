@@ -8,7 +8,7 @@ db = SQLAlchemy()
 
 class Invoice(db.Model):
     invoice_number = db.Column(db.Unicode(50), primary_key=True, unique=True)
-    received_date = db.Column(db.Date, default=datetime.today())
+    received_date = db.Column(db.Date, default=datetime.today)
     parts = db.relationship('InvoiceDetail', back_populates="invoice")
 
 
@@ -39,8 +39,9 @@ class Part(db.Model):
     @property
     def available_invoices(self):
         return [
-            i for i in self.invoices if i.status in (
-                'New', 'In Stock - Claimed'
+            i for i in self.invoices if (
+                i.status in ('New', 'In Stock - Claimed') and
+                i.shelf_location not in ('N/A', 'n/a', 'N/a', '', None)
             )
         ]
 
