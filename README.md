@@ -1,12 +1,2 @@
-<h3>This repo is for CodeFellows' entrance evaluation.</h3>
-<p>Technologies used for this project:</p>
-<ul>
-  <li>Python - Flask</li>
-  <li>SQLAlchemy</li>
-  <li>MySQL</li>
-  <li>Bootstrap</li>
-  <li>jQuery</li>
-  <li>WebSockets - Socketio</li>
-  <li>Insignia bootstrap admin theme</li>
-  <li>Nginx + gunicorn running on AWS EC2 ubuntu instance</li>
-</ul>
+## Main repo for myhng.net website
+# For internal use at HNG Group LLC, any question please email contact@hngappliances.com
